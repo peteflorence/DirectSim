@@ -8,8 +8,6 @@ from ddapp import vtkNumpy as vnp
 import numpy as np
 
 
-
-
 app = consoleapp.ConsoleApp()
 view = app.createView(useGrid=False)
 
@@ -25,9 +23,14 @@ grid = grid.GetOutput()
 
 
 pts = vnp.getNumpyFromVtk(grid, 'Points')
-heatMap = np.random.randn(len(pts))
+print "pts ",  np.shape(pts)
+print "pts is this ", pts
+print "grid is this ", grid
 
-vnp.addNumpyToVtk(grid, heatMap, 'heat_map')
+randomHeatMap = np.random.randn(len(pts))
+print "heatMap ", np.shape(randomHeatMap)
+vnp.addNumpyToVtk(grid, randomHeatMap, 'heat_map')
+
 
 gridObj = vis.showPolyData(grid, 'heat map', colorByName='heat_map', parent='scene')
 gridObj.setProperty('Surface Mode', 'Surface with edges')
