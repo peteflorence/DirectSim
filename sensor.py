@@ -6,7 +6,7 @@ import ddapp.objectmodel as om
 
 class SensorObj(object):
 
-    def __init__(self, FOV=180.0, numRays=20, rayLength=8):
+    def __init__(self, FOV=90.0, numRays=20, rayLength=20):
         self.numRays = numRays
         self.rayLength = rayLength
 
@@ -34,7 +34,7 @@ class SensorObj(object):
             rayTransformed = np.array(frame.transform.TransformNormal(ray))
             intersection = self.raycast(self.locator, origin, origin + rayTransformed*self.rayLength)
             if intersection is None:
-                distances[i] = self.rayLength
+                distances[i] = self.rayLength*2
             else:
                 distances[i] = np.linalg.norm(intersection - origin)
 

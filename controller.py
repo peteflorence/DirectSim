@@ -1,11 +1,12 @@
 import numpy as np
 import scipy.integrate as integrate
 import ddapp.objectmodel as om
+import math
 
 
 class ControllerObj(object):
 
-    def __init__(self, sensor, sensor_approximator, u_max=4, epsilonRand=0.4):
+    def __init__(self, sensor, sensor_approximator, u_max=8, epsilonRand=0.4):
         self.Sensor = sensor
         self.SensorApproximator = sensor_approximator
         self.SensorApproximator.initializeThetaVector(self.Sensor.angleGrid)
@@ -14,7 +15,13 @@ class ControllerObj(object):
         self.actionSet = np.array([u_max,0,-u_max])
         self.epsilonRand = epsilonRand
         self.actionSetIdx = np.arange(0,np.size(self.actionSet))
+        self.u_max = 4
 
+        self.slackParam = 0.1
+        self.kTurn = 50000000
+
+    def initializeVelocity(self,velocity):
+        self.velocity = velocity
         
     def computeControlInput(self, state, t, frame, raycastDistance=None, randomize=False):
         # test cases
@@ -46,7 +53,20 @@ class ControllerObj(object):
     def polyController(self):
         polyCoefficients = self.SensorApproximator.polyFitConstrainedLP(self.distances)
 
-        u = 1
+
+        if polyCoefficients[0] > 19:
+            u = 0
+        elif polyCoefficients[1] == 0:
+            u = 0
+        else:
+            u = (1/math.tan(polyCoefficients[1])) *  ( self.kTurn * self.velocity / polyCoefficients[0] + self.slackParam)
+
+        if u > self.u_max:
+            u = self.u_max
+        if u < -self.u_max:
+            u = -self.u_max
+
+        #print polyCoefficients[0], polyCoefficients[1], u
         return u, 0
 
 
