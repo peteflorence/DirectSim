@@ -5,8 +5,9 @@ import ddapp.objectmodel as om
 
 class ControllerObj(object):
 
-    def __init__(self, sensor, u_max=4, epsilonRand=0.4):
+    def __init__(self, sensor, sensor_approximator, u_max=4, epsilonRand=0.4):
         self.Sensor = sensor
+        self.SensorApproximator = sensor_approximator
         self.numRays = self.Sensor.numRays
         self.actionSet = np.array([u_max,0,-u_max])
         self.epsilonRand = epsilonRand
@@ -25,7 +26,7 @@ class ControllerObj(object):
         
 
         #u = self.countStuffController()
-        u, actionIdx = self.countInverseDistancesController()
+        #u, actionIdx = self.countInverseDistancesController()
         u, actionIdx = self.supervisedDPController()
 
         if randomize:

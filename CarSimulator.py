@@ -20,7 +20,9 @@ from PythonQt import QtCore, QtGui
 from world import World
 from car import CarPlant
 from sensor import SensorObj
+from sensorApproximator import SensorApproximatorObj
 from controller import ControllerObj
+
 
 
 class Simulator(object):
@@ -59,7 +61,7 @@ class Simulator(object):
         self.options['World']['percentObsDensity'] = 7.5
         self.options['World']['nonRandomWorld'] = True
         self.options['World']['circleRadius'] = 1.0
-        self.options['World']['scale'] = 1.0
+        self.options['World']['scale'] = 2.0
 
         self.options['Sensor'] = dict()
         self.options['Sensor']['rayLength'] = 10
@@ -86,7 +88,7 @@ class Simulator(object):
         defaultOptions['World']['percentObsDensity'] = 7.5
         defaultOptions['World']['nonRandomWorld'] = True
         defaultOptions['World']['circleRadius'] = 1.75
-        defaultOptions['World']['scale'] = 1.0
+        defaultOptions['World']['scale'] = 2.0
 
 
         defaultOptions['Sensor'] = dict()
@@ -130,7 +132,9 @@ class Simulator(object):
         self.Sensor = SensorObj(rayLength=self.options['Sensor']['rayLength'],
                                 numRays=self.options['Sensor']['numRays'])
 
-        self.Controller = ControllerObj(self.Sensor)
+        self.SensorApproximator = SensorApproximatorObj()
+
+        self.Controller = ControllerObj(self.Sensor, self.SensorApproximator)
 
         self.Car = CarPlant(controller=self.Controller,
                             velocity=self.options['Car']['velocity'])
