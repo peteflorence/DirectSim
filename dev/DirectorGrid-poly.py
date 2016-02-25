@@ -33,11 +33,11 @@ def evalXYpoly(x,y):
   return x**2 + 3*y**2 + x - y
 
 
-# # This distorts the map in z
-for row in pts:
-  print "row before, ", row
-  row[2] = evalXYpoly(row[0],row[1])
-  print "row after,  ", row
+# # # This distorts the map in z
+# for row in pts:
+#   print "row before, ", row
+#   row[2] = evalXYpoly(row[0],row[1])
+#   print "row after,  ", row
 
 polyHeatMap = np.zeros((len(pts)))
 print np.shape(polyHeatMap)
@@ -63,8 +63,8 @@ def clipByPlane(polyData, planeOrigin, planeNormal):
     f.Update()
     return shallowCopy(f.GetOutput())
 
-grid = clipByPlane(grid, (0,0,10), (0,0,1))
-grid = clipByPlane(grid, (0,0,30), (0,0,-1))
+# grid = clipByPlane(grid, (0,0,10), (0,0,1))
+# grid = clipByPlane(grid, (0,0,30), (0,0,-1))
 
 
 gridObj = vis.showPolyData(grid, 'heat map', colorByName='heat_map', parent='scene')
