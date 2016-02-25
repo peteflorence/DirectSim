@@ -8,11 +8,14 @@ class ControllerObj(object):
     def __init__(self, sensor, sensor_approximator, u_max=4, epsilonRand=0.4):
         self.Sensor = sensor
         self.SensorApproximator = sensor_approximator
+        self.SensorApproximator.initializeThetaVector(self.Sensor.angleGrid)
+        print self.SensorApproximator.thetaVector
         self.numRays = self.Sensor.numRays
         self.actionSet = np.array([u_max,0,-u_max])
         self.epsilonRand = epsilonRand
         self.actionSetIdx = np.arange(0,np.size(self.actionSet))
 
+        
     def computeControlInput(self, state, t, frame, raycastDistance=None, randomize=False):
         # test cases
         # u = 0
@@ -27,7 +30,8 @@ class ControllerObj(object):
 
         #u = self.countStuffController()
         #u, actionIdx = self.countInverseDistancesController()
-        u, actionIdx = self.supervisedDPController()
+        #u, actionIdx = self.supervisedDPController()
+        u, actionIdx = self.polyController()
 
         if randomize:
             if np.random.uniform(0,1,1)[0] < self.epsilonRand:
@@ -37,6 +41,13 @@ class ControllerObj(object):
                 u = self.actionSet[actionIdx]
 
         return u, actionIdx
+
+
+    def polyController(self):
+        polyCoefficients = self.SensorApproximator.polyFitConstrainedLP(self.distances)
+
+        u = 1
+        return u, 0
 
 
     def countStuffController(self):

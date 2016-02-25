@@ -132,7 +132,7 @@ class Simulator(object):
         self.Sensor = SensorObj(rayLength=self.options['Sensor']['rayLength'],
                                 numRays=self.options['Sensor']['numRays'])
 
-        self.SensorApproximator = SensorApproximatorObj()
+        self.SensorApproximator = SensorApproximatorObj(numRays=self.options['Sensor']['numRays'])
 
         self.Controller = ControllerObj(self.Sensor, self.SensorApproximator)
 
