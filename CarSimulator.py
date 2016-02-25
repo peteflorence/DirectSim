@@ -19,6 +19,7 @@ from PythonQt import QtCore, QtGui
 
 from world import World
 from car import CarPlant
+from quad import QuadPlant
 from sensor import SensorObj
 from controller import ControllerObj
 
@@ -59,20 +60,20 @@ class Simulator(object):
         self.options['World']['percentObsDensity'] = 7.5
         self.options['World']['nonRandomWorld'] = True
         self.options['World']['circleRadius'] = 1.0
-        self.options['World']['scale'] = 10.0
+        self.options['World']['scale'] = 1.0
 
         self.options['Sensor'] = dict()
         self.options['Sensor']['rayLength'] = 10
         self.options['Sensor']['numRays'] = 20
 
 
-        self.options['Car'] = dict()
-        self.options['Car']['velocity'] = 16
+        self.options['Quad'] = dict()
+        self.options['Quad']['velocity'] = 18
 
         self.options['dt'] = 0.05
 
         self.options['runTime'] = dict()
-        self.options['runTime']['defaultControllerTime'] = 100
+        self.options['runTime']['defaultControllerTime'] = 10
 
 
     def setDefaultOptions(self):
@@ -86,7 +87,7 @@ class Simulator(object):
         defaultOptions['World']['percentObsDensity'] = 7.5
         defaultOptions['World']['nonRandomWorld'] = True
         defaultOptions['World']['circleRadius'] = 1.75
-        defaultOptions['World']['scale'] = 10.0
+        defaultOptions['World']['scale'] = 1.0
 
 
         defaultOptions['Sensor'] = dict()
@@ -94,14 +95,14 @@ class Simulator(object):
         defaultOptions['Sensor']['numRays'] = 20
 
 
-        defaultOptions['Car'] = dict()
-        defaultOptions['Car']['velocity'] = 16
+        defaultOptions['Quad'] = dict()
+        defaultOptions['Quad']['velocity'] = 18
 
         defaultOptions['dt'] = 0.05
 
 
         defaultOptions['runTime'] = dict()
-        defaultOptions['runTime']['defaultControllerTime'] = 100
+        defaultOptions['runTime']['defaultControllerTime'] = 10
 
 
         for k in defaultOptions:
@@ -132,13 +133,13 @@ class Simulator(object):
 
         self.Controller = ControllerObj(self.Sensor)
 
-        self.Car = CarPlant(controller=self.Controller,
-                            velocity=self.options['Car']['velocity'])
+        self.Quad = QuadPlant(controller=self.Controller,
+                            velocity=self.options['Quad']['velocity'])
 
 
         # create the things needed for simulation
         om.removeFromObjectModel(om.findObjectByName('world'))
-        self.world = World.buildCircleWorld(percentObsDensity=self.options['World']['percentObsDensity'],
+        self.world = World.buildWarehouseWorld(percentObsDensity=self.options['World']['percentObsDensity'],
                                             circleRadius=self.options['World']['circleRadius'],
                                             nonRandom=self.options['World']['nonRandomWorld'],
                                             scale=self.options['World']['scale'],
@@ -160,18 +161,18 @@ class Simulator(object):
 
         self.defaultControllerTime = self.options['runTime']['defaultControllerTime']
 
-        self.Car.setFrame(self.frame)
+        self.Quad.setFrame(self.frame)
         print "Finished initialization"
 
 
     def runSingleSimulation(self, controllerType='default', simulationCutoff=None):
 
 
-        self.setRandomCollisionFreeInitialState()
+        self.setCollisionFreeInitialState()
 
-        currentCarState = np.copy(self.Car.state)
-        nextCarState = np.copy(self.Car.state)
-        self.setRobotFrameState(currentCarState[0], currentCarState[1], currentCarState[2])
+        currentQuadState = np.copy(self.Quad.state)
+        nextQuadState = np.copy(self.Quad.state)
+        self.setRobotFrameState(currentQuadState[0], currentQuadState[1], currentQuadState[2])
         currentRaycast = self.Sensor.raycastAll(self.frame)
         nextRaycast = np.zeros(self.Sensor.numRays)
 
@@ -183,15 +184,15 @@ class Simulator(object):
         while (self.counter < self.numTimesteps - 1):
             idx = self.counter
             currentTime = self.t[idx]
-            self.stateOverTime[idx,:] = currentCarState
+            self.stateOverTime[idx,:] = currentQuadState
             x = self.stateOverTime[idx,0]
             y = self.stateOverTime[idx,1]
             theta = self.stateOverTime[idx,2]
             self.setRobotFrameState(x,y,theta)
-            # self.setRobotState(currentCarState[0], currentCarState[1], currentCarState[2])
+            # self.setRobotState(currentQuadState[0], currentQuadState[1], currentQuadState[2])
             currentRaycast = self.Sensor.raycastAll(self.frame)
             self.raycastData[idx,:] = currentRaycast
-            S_current = (currentCarState, currentRaycast)
+            S_current = (currentQuadState, currentRaycast)
 
 
             if controllerType not in self.colorMap.keys():
@@ -200,35 +201,35 @@ class Simulator(object):
 
 
             if controllerType in ["default", "defaultRandom"]:
-                controlInput, controlInputIdx = self.Controller.computeControlInput(currentCarState,
+                controlInput, controlInputIdx = self.Controller.computeControlInput(currentQuadState,
                                                                             currentTime, self.frame,
                                                                             raycastDistance=currentRaycast,
                                                                             randomize=False)
 
             self.controlInputData[idx] = controlInput
 
-            nextCarState = self.Car.simulateOneStep(controlInput=controlInput, dt=self.dt)
+            nextQuadState = self.Quad.simulateOneStep(controlInput=controlInput, dt=self.dt)
 
             # want to compute nextRaycast so we can do the SARSA algorithm
-            x = nextCarState[0]
-            y = nextCarState[1]
-            theta = nextCarState[2]
+            x = nextQuadState[0]
+            y = nextQuadState[1]
+            theta = nextQuadState[2]
             self.setRobotFrameState(x,y,theta)
             nextRaycast = self.Sensor.raycastAll(self.frame)
 
 
             # Compute the next control input
-            S_next = (nextCarState, nextRaycast)
+            S_next = (nextQuadState, nextRaycast)
 
             if controllerType in ["default", "defaultRandom"]:
-                nextControlInput, nextControlInputIdx = self.Controller.computeControlInput(nextCarState,
+                nextControlInput, nextControlInputIdx = self.Controller.computeControlInput(nextQuadState,
                                                                             currentTime, self.frame,
                                                                             raycastDistance=nextRaycast,
                                                                             randomize=False)
 
 
             #bookkeeping
-            currentCarState = nextCarState
+            currentQuadState = nextQuadState
             currentRaycast = nextRaycast
             self.counter+=1
 
@@ -242,7 +243,7 @@ class Simulator(object):
 
 
         # fill in the last state by hand
-        self.stateOverTime[self.counter,:] = currentCarState
+        self.stateOverTime[self.counter,:] = currentQuadState
         self.raycastData[self.counter,:] = currentRaycast
 
 
@@ -335,7 +336,7 @@ class Simulator(object):
             y =   -5.0
             theta = 0 #+ np.random.uniform(0,2*np.pi,1)[0] * 0.01
             
-            self.Car.setCarState(x,y,theta)
+            self.Quad.setQuadState(x,y,theta)
             self.setRobotFrameState(x,y,theta)
 
             print "In loop"
@@ -355,7 +356,7 @@ class Simulator(object):
             y = np.random.uniform(self.world.Ymin+tol, self.world.Ymax-tol, 1)[0]
             theta = np.random.uniform(0,2*np.pi,1)[0]
             
-            self.Car.setCarState(x,y,theta)
+            self.Quad.setQuadState(x,y,theta)
             self.setRobotFrameState(x,y,theta)
 
             if not self.checkInCollision():
@@ -430,16 +431,17 @@ class Simulator(object):
         controllerType = self.getControllerTypeFromCounter(sliderIdx)
         colorMaxRange = self.colorMap[controllerType]
 
-        for i in xrange(self.Sensor.numRays):
-            ray = self.Sensor.rays[:,i]
-            rayTransformed = np.array(frame.transform.TransformNormal(ray))
-            #print "rayTransformed is", rayTransformed
-            intersection = self.Sensor.raycast(self.locator, origin, origin + rayTransformed*self.Sensor.rayLength)
+        for j in xrange(self.Sensor.numLayers):
+            for i in xrange(self.Sensor.numRays):
+                ray = self.Sensor.rays[:,i,j]
+                rayTransformed = np.array(frame.transform.TransformNormal(ray))
+                #print "rayTransformed is", rayTransformed
+                intersection = self.Sensor.raycast(self.locator, origin, origin + rayTransformed*self.Sensor.rayLength)
 
-            if intersection is not None:
-                d.addLine(origin, intersection, color=[1,0,0])
-            else:
-                d.addLine(origin, origin+rayTransformed*self.Sensor.rayLength, color=colorMaxRange)
+                if intersection is not None:
+                    d.addLine(origin, intersection, color=[1,0,0])
+                else:
+                    d.addLine(origin, origin+rayTransformed*self.Sensor.rayLength, color=colorMaxRange)
 
         vis.updatePolyData(d.getPolyData(), 'rays', colorByName='RGB255')
 
@@ -467,7 +469,7 @@ class Simulator(object):
     # returns true if we are in collision
     def checkInCollision(self, raycastDistance=None):
         if raycastDistance is None:
-            self.setRobotFrameState(self.Car.state[0],self.Car.state[1],self.Car.state[2])
+            self.setRobotFrameState(self.Quad.state[0],self.Quad.state[1],self.Quad.state[2])
             raycastDistance = self.Sensor.raycastAll(self.frame)
 
         if np.min(raycastDistance) < self.collisionThreshold:
