@@ -59,7 +59,7 @@ class Simulator(object):
         self.options['World']['percentObsDensity'] = 7.5
         self.options['World']['nonRandomWorld'] = True
         self.options['World']['circleRadius'] = 1.0
-        self.options['World']['scale'] = 10.0
+        self.options['World']['scale'] = 1.0
 
         self.options['Sensor'] = dict()
         self.options['Sensor']['rayLength'] = 10
@@ -86,7 +86,7 @@ class Simulator(object):
         defaultOptions['World']['percentObsDensity'] = 7.5
         defaultOptions['World']['nonRandomWorld'] = True
         defaultOptions['World']['circleRadius'] = 1.75
-        defaultOptions['World']['scale'] = 10.0
+        defaultOptions['World']['scale'] = 1.0
 
 
         defaultOptions['Sensor'] = dict()
