@@ -74,7 +74,7 @@ class Simulator(object):
         self.options['dt'] = 0.05
 
         self.options['runTime'] = dict()
-        self.options['runTime']['defaultControllerTime'] = 10
+        self.options['runTime']['defaultControllerTime'] = 60
 
 
     def setDefaultOptions(self):
@@ -103,7 +103,7 @@ class Simulator(object):
 
 
         defaultOptions['runTime'] = dict()
-        defaultOptions['runTime']['defaultControllerTime'] = 10
+        defaultOptions['runTime']['defaultControllerTime'] = 60
 
 
         for k in defaultOptions:
