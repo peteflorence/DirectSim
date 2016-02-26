@@ -6,7 +6,7 @@ from director.consoleapp import ConsoleApp
 from director.timercallback import TimerCallback
 from director import applogic
 from director import screengrabberpanel
-#from director import cameracontrolpanel
+from director import cameracontrolpanel
 
 from director import transformUtils
 import numpy as np
@@ -75,7 +75,7 @@ class Simulator(object):
         self.options['dt'] = 0.05
 
         self.options['runTime'] = dict()
-        self.options['runTime']['defaultControllerTime'] = 600
+        self.options['runTime']['defaultControllerTime'] = 10
 
 
     def setDefaultOptions(self):
@@ -104,7 +104,7 @@ class Simulator(object):
 
 
         defaultOptions['runTime'] = dict()
-        defaultOptions['runTime']['defaultControllerTime'] = 600
+        defaultOptions['runTime']['defaultControllerTime'] = 100
 
 
         for k in defaultOptions:
@@ -159,7 +159,8 @@ class Simulator(object):
         self.Sensor.setLocator(self.locator)
         self.frame = self.robot.getChildFrame()
         self.frame.setProperty('Scale', 3)
-        self.frame.setProperty('Edit', True)
+        #self.frame.setProperty('Visible', False)
+        #self.frame.setProperty('Edit', True)
         self.frame.widget.HandleRotationEnabledOff()
         rep = self.frame.widget.GetRepresentation()
         rep.SetTranslateAxisEnabled(2, False)
@@ -400,6 +401,7 @@ class Simulator(object):
         w = QtGui.QWidget()
         l = QtGui.QVBoxLayout(w)
         l.addWidget(self.view)
+        self.view.orientationMarkerWidget().Off()
         l.addWidget(panel)
         w.showMaximized()
 
@@ -415,7 +417,7 @@ class Simulator(object):
         panel = screengrabberpanel.ScreenGrabberPanel(self.view)
         panel.widget.show()
 
-        #cameracontrolpanel.CameraControlPanel(self.view).widget.show()
+        cameracontrolpanel.CameraControlPanel(self.view).widget.show()
 
         elapsed = time.time() - self.startSimTime
         simRate = self.counter/elapsed
@@ -443,12 +445,14 @@ class Simulator(object):
             y[index] = self.horner(x[index],polyCoefficients)
         
         origin = np.array(frame.transform.GetPosition())
+        origin[2] = -0.001
 
         for i in xrange(self.SensorApproximator.numApproxPoints):
             if y[i] > 0:
                 ray = self.SensorApproximator.approxRays[:,i]
                 rayTransformed = np.array(frame.transform.TransformNormal(ray))
                 intersection = origin + rayTransformed * y[i]
+                intersection[2] = -0.001
                 d.addLine(origin, intersection, color=[0,0.1,1])
 
         vis.updatePolyData(d.getPolyData(), 'polyApprox', colorByName='RGB255')
