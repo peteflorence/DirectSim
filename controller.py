@@ -10,7 +10,9 @@ class ControllerObj(object):
         self.Sensor = sensor
         self.SensorApproximator = sensor_approximator
         self.SensorApproximator.initializeThetaVector(self.Sensor.angleGrid)
+        self.SensorApproximator.initializeApproxThetaVector(self.Sensor.angleMin, self.Sensor.angleMax)
         print self.SensorApproximator.thetaVector
+        print self.SensorApproximator.approxThetaVector
         self.numRays = self.Sensor.numRays
         self.actionSet = np.array([u_max,0,-u_max])
         self.epsilonRand = epsilonRand

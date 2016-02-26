@@ -13,10 +13,18 @@ class SensorApproximatorObj(object):
         self.numRays = numRays
         self.circleRadius = circleRadius
 
+        
+
     def initializeThetaVector(self,thetaVector):
         self.thetaVector = thetaVector
+
+    def initializeApproxThetaVector(self, angleMin, angleMax):
+        self.numApproxPoints = 200
+        self.approxThetaVector = np.linspace(angleMin, angleMax, self.numApproxPoints)
+        self.approxRays = np.zeros((3,self.numApproxPoints))
+        self.approxRays[0,:] = np.cos(self.approxThetaVector)
+        self.approxRays[1,:] = -np.sin(self.approxThetaVector)
         
-        #lr = LinearRegression(laseAngles2,laserDepths,N)
 
     def polyFitConstrainedLP(self, distances):
         self.laserDepths = np.array(distances) - np.ones((np.shape(distances)))*self.circleRadius # decrease each sensor by the circle radius (i.e., inflate all obstacles)
@@ -25,29 +33,6 @@ class SensorApproximatorObj(object):
         self.setUpOptimization()
         self.constrainedLP()
         return self.polyCoefficientsLP
-
-
-    def updateDrawPoly(self):
-        d = DebugData()
-        x = np.linspace(-math.pi/4,math.pi/4,200)
-        y = x * 0.0
-        for index,val in enumerate(y):
-            y[index] = self.horner(x[index],self.polyCoefficientsLP)
-        
-        origin = np.array([0,0,0])
-        intersection = np.array([100,100,100])
-
-        print "I'm updating drawing the poly "
-
-        d.addLine(origin, intersection, color=[0,0.1,1])
-        vis.updatePolyData(d.getPolyData(), 'polyApprox', colorByName='RGB255')
-
-    def horner(self, x, weights):
-        coefficients = weights[::-1]
-        result = 0
-        for i in coefficients:
-            result = result * x + i
-        return result
 
 
     def setUpOptimization(self):

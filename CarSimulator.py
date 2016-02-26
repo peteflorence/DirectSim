@@ -74,7 +74,7 @@ class Simulator(object):
         self.options['dt'] = 0.05
 
         self.options['runTime'] = dict()
-        self.options['runTime']['defaultControllerTime'] = 60
+        self.options['runTime']['defaultControllerTime'] = 10
 
 
     def setDefaultOptions(self):
@@ -103,7 +103,7 @@ class Simulator(object):
 
 
         defaultOptions['runTime'] = dict()
-        defaultOptions['runTime']['defaultControllerTime'] = 60
+        defaultOptions['runTime']['defaultControllerTime'] = 10
 
 
         for k in defaultOptions:
@@ -132,7 +132,7 @@ class Simulator(object):
         self.Sensor = SensorObj(rayLength=self.options['Sensor']['rayLength'],
                                 numRays=self.options['Sensor']['numRays'])
 
-        self.SensorApproximator = SensorApproximatorObj(numRays=self.options['Sensor']['numRays'], circleRadius=self.options['World']['circleRadius'] )
+        self.SensorApproximator = SensorApproximatorObj(numRays=self.options['Sensor']['numRays'], circleRadius=self.options['World']['circleRadius'], )
 
         self.Controller = ControllerObj(self.Sensor, self.SensorApproximator)
 
@@ -434,17 +434,23 @@ class Simulator(object):
         polyCoefficients = self.SensorApproximator.polyFitConstrainedLP(distances)
     
         d = DebugData()
-        x = np.linspace(-np.pi/4,np.pi/4,200)
+        
+        x = self.SensorApproximator.approxThetaVector
         y = x * 0.0
         for index,val in enumerate(y):
             y[index] = self.horner(x[index],polyCoefficients)
         
-        origin = np.array([0,0,0])
-        intersection = np.array([100,100,100])
+        origin = np.array(frame.transform.GetPosition())
+
+        for i in xrange(self.SensorApproximator.numApproxPoints):
+            if y[i] > 0:
+                ray = self.SensorApproximator.approxRays[:,i]
+                rayTransformed = np.array(frame.transform.TransformNormal(ray))
+                intersection = origin + rayTransformed * y[i]
+                d.addLine(origin, intersection, color=[0,0.1,1])
 
         print "I'm updating drawing the poly "
 
-        d.addLine(origin, intersection, color=[0,0.1,1])
         vis.updatePolyData(d.getPolyData(), 'polyApprox', colorByName='RGB255')
 
     def horner(self, x, weights):
