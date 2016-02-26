@@ -65,7 +65,7 @@ class Simulator(object):
 
         self.options['Sensor'] = dict()
         self.options['Sensor']['rayLength'] = 20
-        self.options['Sensor']['numRays'] = 51
+        self.options['Sensor']['numRays'] = 41
 
 
         self.options['Car'] = dict()
@@ -74,7 +74,7 @@ class Simulator(object):
         self.options['dt'] = 0.05
 
         self.options['runTime'] = dict()
-        self.options['runTime']['defaultControllerTime'] = 60
+        self.options['runTime']['defaultControllerTime'] = 600
 
 
     def setDefaultOptions(self):
@@ -93,7 +93,7 @@ class Simulator(object):
 
         defaultOptions['Sensor'] = dict()
         defaultOptions['Sensor']['rayLength'] = 20
-        defaultOptions['Sensor']['numRays'] = 51
+        defaultOptions['Sensor']['numRays'] = 41
 
 
         defaultOptions['Car'] = dict()
@@ -103,7 +103,7 @@ class Simulator(object):
 
 
         defaultOptions['runTime'] = dict()
-        defaultOptions['runTime']['defaultControllerTime'] = 60
+        defaultOptions['runTime']['defaultControllerTime'] = 600
 
 
         for k in defaultOptions:

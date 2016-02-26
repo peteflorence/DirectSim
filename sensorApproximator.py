@@ -9,7 +9,7 @@ import ddapp.visualization as vis
 class SensorApproximatorObj(object):
 
     def __init__(self, numRays, circleRadius):
-        self.N = 4
+        self.N = 1
         self.numRays = numRays
         self.circleRadius = circleRadius
 
@@ -26,8 +26,8 @@ class SensorApproximatorObj(object):
 
     def polyFitConstrainedLP(self, distances):
         self.laserDepths = np.array(distances) - np.ones((np.shape(distances)))*self.circleRadius # decrease each sensor by the circle radius (i.e., inflate all obstacles)
-        self.laserDepths[0] = 0.1
-        self.laserDepths[-1] = 0.1
+        #self.laserDepths[0] = 0.1
+        #self.laserDepths[-1] = 0.1
         self.setUpOptimization()
         self.constrainedLP()
         return self.polyCoefficientsLP
@@ -61,7 +61,7 @@ class SensorApproximatorObj(object):
         # G = A
         
         # no restrictions on coefficients
-        #self.G = cvxopt.matrix(A_pete)
+        # self.G = cvxopt.matrix(A_pete)
 
         # restrict c_1 to be in nice tangent domain
         # G_pete_add = np.zeros((2,self.N+1))
@@ -70,7 +70,7 @@ class SensorApproximatorObj(object):
         # G_pete_ineq = np.vstack((A_pete, G_pete_add))
         # self.G = cvxopt.matrix(G_pete_ineq)
 
-        # restrict c_0 to be positive
+        # # restrict c_0 to be positive
         G_pete_add = np.zeros((1,self.N+1))
         G_pete_add[0,0] = -1
         G_pete_ineq = np.vstack((A_pete, G_pete_add))
@@ -80,7 +80,7 @@ class SensorApproximatorObj(object):
         # h = b_pete
 
         # no restrictions on coefficents
-        #self.h = cvxopt.matrix(b_pete.T)
+        self.h = cvxopt.matrix(b_pete.T)
 
         # restrict c_1 to be in nice tangent doman
         # h_add = np.zeros((1,2))
@@ -89,7 +89,7 @@ class SensorApproximatorObj(object):
         # h_pete_ineq = np.hstack((b_pete, h_add))
         # self.h = cvxopt.matrix(h_pete_ineq.T)
 
-        #restrict c_0 to be positive
+        # #restrict c_0 to be positive
         h_add = np.zeros((1,1))
         h_add[0,0] = 0.1
         h_pete_ineq = np.hstack((b_pete, h_add))

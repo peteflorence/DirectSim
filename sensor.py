@@ -6,7 +6,7 @@ import ddapp.objectmodel as om
 
 class SensorObj(object):
 
-    def __init__(self, FOV=60.0, numRays=20, rayLength=20):
+    def __init__(self, FOV=90.0, numRays=20, rayLength=20):
         self.numRays = numRays
         self.rayLength = rayLength
 

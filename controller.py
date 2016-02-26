@@ -6,7 +6,7 @@ import math
 
 class ControllerObj(object):
 
-    def __init__(self, sensor, sensor_approximator, u_max=1, epsilonRand=0.4):
+    def __init__(self, sensor, sensor_approximator, u_max=4, epsilonRand=0.4):
         self.Sensor = sensor
         self.SensorApproximator = sensor_approximator
         self.SensorApproximator.initializeThetaVector(self.Sensor.angleGrid)
@@ -20,7 +20,7 @@ class ControllerObj(object):
         self.u_max = u_max
 
         self.slackParam = 0.1
-        self.k = 1000
+        self.k = 5
         self.kTurn = 50000000
 
     def initializeVelocity(self,velocity):
@@ -57,7 +57,9 @@ class ControllerObj(object):
     def polyController(self):
         polyCoefficients = self.SensorApproximator.polyFitConstrainedLP(self.distances)
 
-        if polyCoefficients[0] > 19:
+        if polyCoefficients == None:
+            u = 0
+        elif polyCoefficients[0] > 12:
             u = 0
         elif polyCoefficients[1] == 0:
             u = 0
