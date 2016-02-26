@@ -431,9 +431,7 @@ class Simulator(object):
 
     def updateDrawPolyApprox(self, frame):
         distances = self.Sensor.raycastAll(frame)
-        start = time.time() 
         polyCoefficients = self.SensorApproximator.polyFitConstrainedLP(distances)
-        print "polyfit took ", time.time() - start
     
         d = DebugData()
         
@@ -451,8 +449,6 @@ class Simulator(object):
                 intersection = origin + rayTransformed * y[i]
                 d.addLine(origin, intersection, color=[0,0.1,1])
 
-        print "I'm updating drawing the poly "
-
         vis.updatePolyData(d.getPolyData(), 'polyApprox', colorByName='RGB255')
 
     def horner(self, x, weights):
@@ -464,8 +460,6 @@ class Simulator(object):
         
 
     def updateDrawIntersection(self, frame):
-
-        print "I'm updating draw intersection "
 
         origin = np.array(frame.transform.GetPosition())
         #print "origin is now at", origin

@@ -20,6 +20,7 @@ class ControllerObj(object):
         self.u_max = u_max
 
         self.slackParam = 0.1
+        self.k = 1000
         self.kTurn = 50000000
 
     def initializeVelocity(self,velocity):
@@ -61,7 +62,7 @@ class ControllerObj(object):
         elif polyCoefficients[1] == 0:
             u = 0
         else:
-            u = (self.velocity + self.slackParam) / (polyCoefficients[0] * polyCoefficients[1])
+            u = self.k * (self.velocity + self.slackParam) / (polyCoefficients[0] * polyCoefficients[1])
 
         if u > self.u_max:
             u = self.u_max
