@@ -3,8 +3,8 @@ import scipy.optimize as opt
 from linear_regression import LinearRegression
 import cvxopt
 import math
-from ddapp.debugVis import DebugData
-import ddapp.visualization as vis
+from director.debugVis import DebugData
+import director.visualization as vis
 
 class SensorApproximatorObj(object):
 

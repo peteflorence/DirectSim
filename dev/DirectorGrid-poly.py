@@ -1,10 +1,10 @@
-from ddapp import consoleapp
-from ddapp import objectmodel as om
-from ddapp import visualization as vis
-from ddapp import vtkAll as vtk
-from ddapp import applogic
-from ddapp import vtkNumpy as vnp
-from ddapp.shallowCopy import shallowCopy
+from director import consoleapp
+from director import objectmodel as om
+from director import visualization as vis
+from director import vtkAll as vtk
+from director import applogic
+from director import vtkNumpy as vnp
+from director.shallowCopy import shallowCopy
 
 import numpy as np
 

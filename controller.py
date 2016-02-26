@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.integrate as integrate
-import ddapp.objectmodel as om
+import director.objectmodel as om
 import math
 
 
