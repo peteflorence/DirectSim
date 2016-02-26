@@ -52,7 +52,28 @@ class ControllerObj(object):
         return u, actionIdx
 
 
+    # this is from derivation with John's help
     def polyController(self):
+        polyCoefficients = self.SensorApproximator.polyFitConstrainedLP(self.distances)
+
+        if polyCoefficients[0] > 19:
+            u = 0
+        elif polyCoefficients[1] == 0:
+            u = 0
+        else:
+            u = (self.velocity + self.slackParam) / (polyCoefficients[0] * polyCoefficients[1])
+
+        if u > self.u_max:
+            u = self.u_max
+        if u < -self.u_max:
+            u = -self.u_max
+
+        #print polyCoefficients[0], polyCoefficients[1], u
+        return -u, 0
+
+
+    # this was from a confused derivation
+    def polyControllerTangent(self):
         polyCoefficients = self.SensorApproximator.polyFitConstrainedLP(self.distances)
 
         if polyCoefficients[0] > 19:

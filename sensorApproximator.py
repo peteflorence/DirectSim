@@ -13,8 +13,6 @@ class SensorApproximatorObj(object):
         self.numRays = numRays
         self.circleRadius = circleRadius
 
-        
-
     def initializeThetaVector(self,thetaVector):
         self.thetaVector = thetaVector
 

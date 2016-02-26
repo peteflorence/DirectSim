@@ -431,7 +431,9 @@ class Simulator(object):
 
     def updateDrawPolyApprox(self, frame):
         distances = self.Sensor.raycastAll(frame)
+        start = time.time() 
         polyCoefficients = self.SensorApproximator.polyFitConstrainedLP(distances)
+        print "polyfit took ", time.time() - start
     
         d = DebugData()
         
