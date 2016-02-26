@@ -6,6 +6,7 @@ from ddapp.consoleapp import ConsoleApp
 from ddapp.timercallback import TimerCallback
 from ddapp import applogic
 from ddapp import screengrabberpanel
+#from ddapp import cameracontrolpanel
 
 from ddapp import transformUtils
 import numpy as np
@@ -216,7 +217,7 @@ class Simulator(object):
 
             nextCarState = self.Car.simulateOneStep(controlInput=controlInput, dt=self.dt)
 
-            # want to compute nextRaycast so we can do the SARSA algorithm
+        
             x = nextCarState[0]
             y = nextCarState[1]
             theta = nextCarState[2]
@@ -414,6 +415,8 @@ class Simulator(object):
         panel = screengrabberpanel.ScreenGrabberPanel(self.view)
         panel.widget.show()
 
+        #cameracontrolpanel.CameraControlPanel(self.view).widget.show()
+
         elapsed = time.time() - self.startSimTime
         simRate = self.counter/elapsed
         print "Total run time", elapsed
@@ -424,7 +427,6 @@ class Simulator(object):
     def run(self, launchApp=True):
         self.counter = 1
         self.runBatchSimulation()
-        # self.Sarsa.plotWeights()
 
         if launchApp:
             self.setupPlayback()
