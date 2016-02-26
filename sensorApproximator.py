@@ -3,12 +3,15 @@ import scipy.optimize as opt
 from linear_regression import LinearRegression
 import cvxopt
 import math
+from ddapp.debugVis import DebugData
+import ddapp.visualization as vis
 
 class SensorApproximatorObj(object):
 
-    def __init__(self, numRays):
+    def __init__(self, numRays, circleRadius):
         self.N = 5
         self.numRays = numRays
+        self.circleRadius = circleRadius
 
     def initializeThetaVector(self,thetaVector):
         self.thetaVector = thetaVector
@@ -16,9 +19,36 @@ class SensorApproximatorObj(object):
         #lr = LinearRegression(laseAngles2,laserDepths,N)
 
     def polyFitConstrainedLP(self, distances):
-        self.laserDepths = distances
+        self.laserDepths = np.array(distances) - np.ones((np.shape(distances)))*self.circleRadius # decrease each sensor by the circle radius (i.e., inflate all obstacles)
+        self.laserDepths[0] = 0.1
+        self.laserDepths[-1] = 0.1
         self.setUpOptimization()
-        return self.constrainedLP()
+        self.constrainedLP()
+        return self.polyCoefficientsLP
+
+
+    def updateDrawPoly(self):
+        d = DebugData()
+        x = np.linspace(-math.pi/4,math.pi/4,200)
+        y = x * 0.0
+        for index,val in enumerate(y):
+            y[index] = self.horner(x[index],self.polyCoefficientsLP)
+        
+        origin = np.array([0,0,0])
+        intersection = np.array([100,100,100])
+
+        print "I'm updating drawing the poly "
+
+        d.addLine(origin, intersection, color=[0,0.1,1])
+        vis.updatePolyData(d.getPolyData(), 'polyApprox', colorByName='RGB255')
+
+    def horner(self, x, weights):
+        coefficients = weights[::-1]
+        result = 0
+        for i in coefficients:
+            result = result * x + i
+        return result
+
 
     def setUpOptimization(self):
         
@@ -73,14 +103,13 @@ class SensorApproximatorObj(object):
     def constrainedQP(self):
         cvxopt.solvers.options['show_progress'] = False
         solution = cvxopt.solvers.qp(self.P, self.q, self.G, self.h)
-        alphaQP = np.array(solution['x'])
-        return alphaQP
+        self.polyCoefficientsQP = np.array(solution['x'])
 
     def constrainedLP(self):
         cvxopt.solvers.options['show_progress'] = False
         solution = cvxopt.solvers.lp(self.c, self.G, self.h)
-        alphaLP = solution['x']
-        return alphaLP
+        self.polyCoefficientsLP = solution['x']
+        
 
 
 # def plotHorner(w):

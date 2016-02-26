@@ -65,7 +65,7 @@ class Simulator(object):
 
         self.options['Sensor'] = dict()
         self.options['Sensor']['rayLength'] = 20
-        self.options['Sensor']['numRays'] = 100
+        self.options['Sensor']['numRays'] = 51
 
 
         self.options['Car'] = dict()
@@ -93,7 +93,7 @@ class Simulator(object):
 
         defaultOptions['Sensor'] = dict()
         defaultOptions['Sensor']['rayLength'] = 20
-        defaultOptions['Sensor']['numRays'] = 100
+        defaultOptions['Sensor']['numRays'] = 51
 
 
         defaultOptions['Car'] = dict()
@@ -132,7 +132,7 @@ class Simulator(object):
         self.Sensor = SensorObj(rayLength=self.options['Sensor']['rayLength'],
                                 numRays=self.options['Sensor']['numRays'])
 
-        self.SensorApproximator = SensorApproximatorObj(numRays=self.options['Sensor']['numRays'])
+        self.SensorApproximator = SensorApproximatorObj(numRays=self.options['Sensor']['numRays'], circleRadius=self.options['World']['circleRadius'] )
 
         self.Controller = ControllerObj(self.Sensor, self.SensorApproximator)
 
@@ -403,7 +403,10 @@ class Simulator(object):
         w.showMaximized()
 
         self.frame.connectFrameModified(self.updateDrawIntersection)
+        self.frame.connectFrameModified(self.updateDrawPolyApprox)
         self.updateDrawIntersection(self.frame)
+        self.updateDrawPolyApprox(self.frame)
+        
 
         applogic.resetCamera(viewDirection=[0.2,0,-1])
         self.view.showMaximized()
@@ -426,7 +429,35 @@ class Simulator(object):
         if launchApp:
             self.setupPlayback()
 
+    def updateDrawPolyApprox(self, frame):
+        distances = self.Sensor.raycastAll(frame)
+        polyCoefficients = self.SensorApproximator.polyFitConstrainedLP(distances)
+    
+        d = DebugData()
+        x = np.linspace(-np.pi/4,np.pi/4,200)
+        y = x * 0.0
+        for index,val in enumerate(y):
+            y[index] = self.horner(x[index],polyCoefficients)
+        
+        origin = np.array([0,0,0])
+        intersection = np.array([100,100,100])
+
+        print "I'm updating drawing the poly "
+
+        d.addLine(origin, intersection, color=[0,0.1,1])
+        vis.updatePolyData(d.getPolyData(), 'polyApprox', colorByName='RGB255')
+
+    def horner(self, x, weights):
+        coefficients = weights[::-1]
+        result = 0
+        for i in coefficients:
+            result = result * x + i
+        return result
+        
+
     def updateDrawIntersection(self, frame):
+
+        print "I'm updating draw intersection "
 
         origin = np.array(frame.transform.GetPosition())
         #print "origin is now at", origin
@@ -477,7 +508,12 @@ class Simulator(object):
             self.setRobotFrameState(self.Car.state[0],self.Car.state[1],self.Car.state[2])
             raycastDistance = self.Sensor.raycastAll(self.frame)
 
-        if np.min(raycastDistance) < self.collisionThreshold:
+        # if np.min(raycastDistance) < self.collisionThreshold:
+        #     return True
+        # else:
+        #     return False
+
+        if raycastDistance[len(raycastDistance)/2] < self.collisionThreshold:
             return True
         else:
             return False
