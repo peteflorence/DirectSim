@@ -33,7 +33,7 @@ class Simulator(object):
                  circleRadius=0.7, worldScale=1.0, autoInitialize=True, verbose=True):
         self.verbose = verbose
         self.startSimTime = time.time()
-        self.collisionThreshold = 1.3
+        self.collisionThreshold = 0.3
         self.randomSeed = 5
         self.Sensor_rayLength = 8
 
@@ -59,14 +59,14 @@ class Simulator(object):
         self.options['World'] = dict()
         self.options['World']['obstaclesInnerFraction'] = 0.98
         self.options['World']['randomSeed'] = 40
-        self.options['World']['percentObsDensity'] = 7.5
+        self.options['World']['percentObsDensity'] = 30
         self.options['World']['nonRandomWorld'] = True
         self.options['World']['circleRadius'] = 1.0
-        self.options['World']['scale'] = 10.0
+        self.options['World']['scale'] = 2.5
 
         self.options['Sensor'] = dict()
         self.options['Sensor']['rayLength'] = 20
-        self.options['Sensor']['numRays'] = 41
+        self.options['Sensor']['numRays'] = 21
 
 
         self.options['Car'] = dict()
@@ -75,7 +75,7 @@ class Simulator(object):
         self.options['dt'] = 0.05
 
         self.options['runTime'] = dict()
-        self.options['runTime']['defaultControllerTime'] = 10
+        self.options['runTime']['defaultControllerTime'] = 100
 
 
     def setDefaultOptions(self):
@@ -86,10 +86,10 @@ class Simulator(object):
         defaultOptions['World'] = dict()
         defaultOptions['World']['obstaclesInnerFraction'] = 0.98
         defaultOptions['World']['randomSeed'] = 40
-        defaultOptions['World']['percentObsDensity'] = 7.5
+        defaultOptions['World']['percentObsDensity'] = 30
         defaultOptions['World']['nonRandomWorld'] = True
         defaultOptions['World']['circleRadius'] = 1.75
-        defaultOptions['World']['scale'] = 10.0
+        defaultOptions['World']['scale'] = 2.5
 
 
         defaultOptions['Sensor'] = dict()
@@ -516,15 +516,15 @@ class Simulator(object):
             self.setRobotFrameState(self.Car.state[0],self.Car.state[1],self.Car.state[2])
             raycastDistance = self.Sensor.raycastAll(self.frame)
 
-        # if np.min(raycastDistance) < self.collisionThreshold:
-        #     return True
-        # else:
-        #     return False
-
-        if raycastDistance[len(raycastDistance)/2] < self.collisionThreshold:
+        if np.min(raycastDistance) < self.collisionThreshold:
             return True
         else:
             return False
+
+        # if raycastDistance[len(raycastDistance)/2] < self.collisionThreshold:
+        #     return True
+        # else:
+        #     return False
 
     def tick(self):
         #print timer.elapsed
