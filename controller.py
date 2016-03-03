@@ -41,7 +41,8 @@ class ControllerObj(object):
         #u = self.countStuffController()
         #u, actionIdx = self.countInverseDistancesController()
         #u, actionIdx = self.supervisedDPController()
-        u, actionIdx = self.polyController()
+        #u, actionIdx = self.polyController()
+        u, actionIdx = self.threeController()
 
         if randomize:
             if np.random.uniform(0,1,1)[0] < self.epsilonRand:
@@ -51,6 +52,35 @@ class ControllerObj(object):
                 u = self.actionSet[actionIdx]
 
         return u, actionIdx
+
+
+    def threeController(self):
+        if self.numRays != 3:
+            print "I am only designed for 3 sensors!"
+
+        d_0 = self.distances[1]
+        d_neg1 = self.distances[0]
+        d_pos1 = self.distances[2]
+
+        if d_0 > 12:
+            u = 0
+        elif (d_0 > d_pos1) and (d_0 > d_neg1):
+            u = 0
+        else:
+            c_0 = d_0
+
+            if (d_neg1 > d_pos1):
+                c_1 = (d_0 - d_neg1) / 0.25
+            else:
+                c_1 = (d_pos1 - d_0) / 0.25
+            u = 100000 * (self.velocity + self.slackParam) / (c_0 * c_1)
+        
+        if u > self.u_max:
+            u = self.u_max
+        if u < -self.u_max:
+            u = -self.u_max
+
+        return -u, 0
 
 
     # this is from derivation with John's help

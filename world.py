@@ -48,7 +48,7 @@ class World(object):
         for idx, value in enumerate(listOfCorners[:-1]):
             firstEndpt = value
             secondEndpt = listOfCorners[idx+1]
-            d.addLine(firstEndpt, secondEndpt, radius=0.1)
+            d.addLine(firstEndpt, secondEndpt, radius=1.0)
 
         return worldXmin, worldXmax, worldYmin, worldYmax
 
