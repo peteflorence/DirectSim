@@ -55,12 +55,10 @@ class ControllerObj(object):
 
 
     def threeController(self):
-        if self.numRays != 3:
-            print "I am only designed for 3 sensors!"
-
-        d_0 = self.distances[1]
-        d_neg1 = self.distances[0]
-        d_pos1 = self.distances[2]
+        
+        d_0 = self.distances[(len(self.distances)+1)/2]
+        d_neg1 = self.distances[(len(self.distances)+1)/2 - 1]
+        d_pos1 = self.distances[(len(self.distances)+1)/2 + 1]
 
         if d_0 > 12:
             u = 0
