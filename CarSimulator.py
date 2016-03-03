@@ -33,7 +33,7 @@ class Simulator(object):
                  circleRadius=0.7, worldScale=1.0, autoInitialize=True, verbose=True):
         self.verbose = verbose
         self.startSimTime = time.time()
-        self.collisionThreshold = 0.3
+        self.collisionThreshold = 1.0
         self.randomSeed = 5
         self.Sensor_rayLength = 8
 
@@ -57,7 +57,7 @@ class Simulator(object):
         self.options = dict()
 
         self.options['World'] = dict()
-        self.options['World']['obstaclesInnerFraction'] = 0.98
+        self.options['World']['obstaclesInnerFraction'] = 0.9
         self.options['World']['randomSeed'] = 40
         self.options['World']['percentObsDensity'] = 30
         self.options['World']['nonRandomWorld'] = True
