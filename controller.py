@@ -55,12 +55,12 @@ class ControllerObj(object):
 
 
     def threeController(self):
-        
-        d_0 = self.distances[(len(self.distances)+1)/2]
-        d_neg1 = self.distances[(len(self.distances)+1)/2 - 1]
-        d_pos1 = self.distances[(len(self.distances)+1)/2 + 1]
+        mid_index = (len(self.distances)+1)/2
+        d_0 = np.min(self.distances[(mid_index-3):(mid_index+3)])
+        d_neg1 = np.min(self.distances[0:(mid_index-3)])
+        d_pos1 = np.min(self.distances[(mid_index+4):])
 
-        if d_0 > 12:
+        if np.min(self.distances) > 5:
             u = 0
         elif (d_0 > d_pos1) and (d_0 > d_neg1):
             u = 0
@@ -71,7 +71,38 @@ class ControllerObj(object):
                 c_1 = (d_0 - d_neg1) / 0.25
             else:
                 c_1 = (d_pos1 - d_0) / 0.25
-            u = 100000 * (self.velocity + self.slackParam) / (c_0 * c_1)
+            
+            if c_1 == 0:
+                u = 0
+            else:
+                u = 10 * (self.velocity + self.slackParam) / (c_0 * c_1)
+        
+        if u > self.u_max:
+            u = self.u_max
+        if u < -self.u_max:
+            u = -self.u_max
+
+        return -u, 0
+
+    def doubleLPController(self):
+        polyCoefficientsLeft = self.SensorApproximator.polyFitConstrainedLP(self.distances)
+
+        if np.min(self.distances) > 5:
+            u = 0
+        elif (d_0 > d_pos1) and (d_0 > d_neg1):
+            u = 0
+        else:
+            c_0 = d_0
+
+            if (d_neg1 > d_pos1):
+                c_1 = (d_0 - d_neg1) / 0.25
+            else:
+                c_1 = (d_pos1 - d_0) / 0.25
+            
+            if c_1 == 0:
+                u = 0
+            else:
+                u = 10 * (self.velocity + self.slackParam) / (c_0 * c_1)
         
         if u > self.u_max:
             u = self.u_max
