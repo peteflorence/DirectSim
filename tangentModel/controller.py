@@ -6,11 +6,10 @@ import math
 
 class ControllerObj(object):
 
-    def __init__(self, sensor, sensor_approximator, u_max=4, epsilonRand=0.4):
+    def __init__(self, sensor, normal_approximator, u_max=4, epsilonRand=0.4):
         self.Sensor = sensor
-        self.SensorApproximator = sensor_approximator
-        self.SensorApproximator.initializeThetaVector(self.Sensor.angleGrid)
-        self.SensorApproximator.initializeApproxThetaVector(self.Sensor.angleMin, self.Sensor.angleMax)
+        self.NormalApproximator = normal_approximator
+        self.NormalApproximator.initializeThetaVector(self.Sensor.angleGrid)
         self.numRays = self.Sensor.numRays
         self.actionSet = np.array([u_max,0,-u_max])
         self.epsilonRand = epsilonRand
@@ -39,8 +38,10 @@ class ControllerObj(object):
         #u = self.countStuffController()
         #u, actionIdx = self.countInverseDistancesController()
         #u, actionIdx = self.supervisedDPController()
-        u, actionIdx = self.polyController()
+        #u, actionIdx = self.polyController()
         #u, actionIdx = self.threeController()
+        u, actionIdx = self.normalController()
+
 
         if randomize:
             if np.random.uniform(0,1,1)[0] < self.epsilonRand:
@@ -111,17 +112,16 @@ class ControllerObj(object):
 
 
     # this is from derivation with John's help
-    def polyController(self):
-        polyCoefficients = self.SensorApproximator.polyFitConstrainedLP(self.distances)
+    def normalController(self):
+        self.normals = self.NormalApproximator.getNormals()
 
-        if polyCoefficients == None:
-            u = 0
-        elif polyCoefficients[0] > 12:
-            u = 0
-        elif polyCoefficients[1] == 0:
-            u = 0
+        middle_normal = self.normals[len(self.normals)/2]
+        middle_distance = self.distances[len(self.distances)/2]
+        
+        if middle_normal == 0:
+            u = self.u_max      # max turn to one side if estimate the normal to be exactly 0
         else:
-            u = self.k * (self.velocity + self.slackParam) / (polyCoefficients[0] * polyCoefficients[1])
+            u = self.k * (self.velocity + self.slackParam) / (middle_distance * math.tan(middle_normal))
 
         if u > self.u_max:
             u = self.u_max
@@ -130,26 +130,6 @@ class ControllerObj(object):
 
         #print polyCoefficients[0], polyCoefficients[1], u
         return -u, 0
-
-
-    # this was from a confused derivation
-    def polyControllerTangent(self):
-        polyCoefficients = self.SensorApproximator.polyFitConstrainedLP(self.distances)
-
-        if polyCoefficients[0] > 19:
-            u = 0
-        elif polyCoefficients[1] == 0:
-            u = 0
-        else:
-            u = (1/math.tan(polyCoefficients[1])) *  ( self.kTurn * self.velocity / polyCoefficients[0] + self.slackParam)
-
-        if u > self.u_max:
-            u = self.u_max
-        if u < -self.u_max:
-            u = -self.u_max
-
-        #print polyCoefficients[0], polyCoefficients[1], u
-        return u, 0
 
 
     def countStuffController(self):
