@@ -406,9 +406,9 @@ class Simulator(object):
         w.showMaximized()
 
         self.frame.connectFrameModified(self.updateDrawIntersection)
-        #self.frame.connectFrameModified(self.updateDrawPolyApprox)
+        self.frame.connectFrameModified(self.updateDrawPolyApprox)
         self.updateDrawIntersection(self.frame)
-        #self.updateDrawPolyApprox(self.frame)
+        self.updateDrawPolyApprox(self.frame)
         
 
         applogic.resetCamera(viewDirection=[0.2,0,-1])
