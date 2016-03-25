@@ -33,7 +33,7 @@ class Simulator(object):
                  circleRadius=0.7, worldScale=1.0, autoInitialize=True, verbose=True):
         self.verbose = verbose
         self.startSimTime = time.time()
-        self.collisionThreshold = 0.2
+        self.collisionThreshold = 0.3
         self.randomSeed = 5
         self.Sensor_rayLength = 8
 
@@ -195,8 +195,7 @@ class Simulator(object):
             self.stateOverTime[idx,:] = currentCarState
             x = self.stateOverTime[idx,0]
             y = self.stateOverTime[idx,1]
-            theta = self.stateOverTime[idx,2]
-            self.setRobotFrameState(x,y,theta)
+            self.setRobotFrameState(x,y,0.0)
             # self.setRobotState(currentCarState[0], currentCarState[1], currentCarState[2])
             currentRaycast = self.Sensor.raycastAll(self.frame)
             self.raycastData[idx,:] = currentRaycast
@@ -273,9 +272,9 @@ class Simulator(object):
 
         self.t = np.arange(0.0, self.endTime, dt)
         maxNumTimesteps = np.size(self.t)
-        self.stateOverTime = np.zeros((maxNumTimesteps+1, 3))
+        self.stateOverTime = np.zeros((maxNumTimesteps+1, 4))
         self.raycastData = np.zeros((maxNumTimesteps+1, self.Sensor.numRays))
-        self.controlInputData = np.zeros(maxNumTimesteps+1)
+        self.controlInputData = np.zeros((maxNumTimesteps+1,2))
         self.numTimesteps = maxNumTimesteps
 
         self.controllerTypeOrder = ['default']
@@ -365,13 +364,13 @@ class Simulator(object):
             #theta = np.random.uniform(0,2*np.pi,1)[0]
             theta = 0 #always forward
 
-            self.Car.setCarState(x,y,theta)
+            self.Car.setCarState(x,y,0,0)
             self.setRobotFrameState(x,y,theta)
 
             if not self.checkInCollision():
                 break
 
-        return x,y,theta
+        return x,y,0,0
 
     def setupPlayback(self):
 
@@ -437,6 +436,8 @@ class Simulator(object):
     def updateDrawPolyApprox(self, frame):
         distances = self.Sensor.raycastAll(frame)
         polyCoefficients = self.SensorApproximator.polyFitConstrainedLP(distances)
+        if polyCoefficients == None:
+            polyCoefficients = [0,0]
     
         d = DebugData()
         
@@ -454,7 +455,7 @@ class Simulator(object):
                 rayTransformed = np.array(frame.transform.TransformNormal(ray))
                 intersection = origin + rayTransformed * y[i]
                 intersection[2] = -0.001
-                d.addLine(origin, intersection, color=[0,0.1,1])
+                d.addLine(origin, intersection, color=[0,0,1])
 
         vis.updatePolyData(d.getPolyData(), 'polyApprox', colorByName='RGB255')
 
@@ -517,15 +518,15 @@ class Simulator(object):
             self.setRobotFrameState(self.Car.state[0],self.Car.state[1],self.Car.state[2])
             raycastDistance = self.Sensor.raycastAll(self.frame)
 
-        # if np.min(raycastDistance) < self.collisionThreshold:
-        #     return True
-        # else:
-        #     return False
-
-        if raycastDistance[(len(raycastDistance)+1)/2] < self.collisionThreshold:
+        if np.min(raycastDistance) < self.collisionThreshold:
             return True
         else:
             return False
+
+        # if raycastDistance[(len(raycastDistance)+1)/2] < self.collisionThreshold:
+        #     return True
+        # else:
+        #     return False
 
     def tick(self):
         #print timer.elapsed
@@ -559,8 +560,8 @@ class Simulator(object):
         numSteps = len(self.stateOverTime)
         idx = int(np.floor(numSteps*(1.0*value/self.sliderMax)))
         idx = min(idx, numSteps-1)
-        x,y,theta = self.stateOverTime[idx]
-        self.setRobotFrameState(x,y,theta)
+        x,y, xdot, ydot = self.stateOverTime[idx]
+        self.setRobotFrameState(x,y,0)
         self.sliderMovedByPlayTimer = False
 
     def onPlayButton(self):

@@ -9,11 +9,11 @@ class CarPlant(object):
         # initial state
         self.x = 0.0
         self.y = 0.0
-        self.psi = 0.0
+        self.xdot = 0.0
+        self.ydot = 0.0
       
-        rad = np.pi/180.0
 
-        self.state = np.array([self.x, self.y, self.psi*rad])
+        self.state = np.array([self.x, self.y, self.xdot, self.ydot])
 
         # constant velocity
         self.v = velocity
@@ -28,15 +28,12 @@ class CarPlant(object):
         if controlInput is not None:
             u = controlInput
         else:
-            # need to calculate from controller
-            if self.Controller is None:
-                u = np.sin(t)
-            else:
-                u = self.Controller.computeControlInput(state, t, self.frame)
+            u = self.Controller.computeControlInput(state, t, self.frame)
 
-        dqdt[0] = u
-        dqdt[1] = 0
-        dqdt[2] = 0
+        dqdt[0] = state[2]
+        dqdt[1] = state[3]
+        dqdt[2] = u[0]
+        dqdt[3] = u[1]
     
         return dqdt
 
@@ -47,8 +44,8 @@ class CarPlant(object):
          # get roll, pitch, yaw from the frame, set the state to that . . .
          pass
 
-    def setCarState(self, x, y, theta):
-        self.state = np.array([x, y, theta])
+    def setCarState(self, x, y, xdot, ydot):
+        self.state = np.array([x, y, xdot, ydot])
 
     def simulate(self, dt=0.05):
         t = np.arange(0.0, 10, dt)

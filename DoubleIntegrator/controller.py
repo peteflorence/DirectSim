@@ -41,7 +41,7 @@ class ControllerObj(object):
         #u, actionIdx = self.supervisedDPController()
         #u, actionIdx = self.polyController()
         #u, actionIdx = self.threeController()
-        u = 1
+        u = [1,-2]
         actionIdx = 0
 
         if randomize:
