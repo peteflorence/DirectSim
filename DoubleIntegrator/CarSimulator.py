@@ -362,8 +362,9 @@ class Simulator(object):
             
             x = np.random.uniform(self.world.Xmin+tol, self.world.Xmax-tol, 1)[0]
             y = np.random.uniform(self.world.Ymin+tol, self.world.Ymax-tol, 1)[0]
-            theta = np.random.uniform(0,2*np.pi,1)[0]
-            
+            #theta = np.random.uniform(0,2*np.pi,1)[0]
+            theta = 0 #always forward
+
             self.Car.setCarState(x,y,theta)
             self.setRobotFrameState(x,y,theta)
 

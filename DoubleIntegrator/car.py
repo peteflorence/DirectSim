@@ -34,9 +34,9 @@ class CarPlant(object):
             else:
                 u = self.Controller.computeControlInput(state, t, self.frame)
 
-        dqdt[0] = self.v*np.cos(state[2])
-        dqdt[1] = self.v*np.sin(state[2])
-        dqdt[2] = u # we are directly controlling yaw rate
+        dqdt[0] = u
+        dqdt[1] = 0
+        dqdt[2] = 0
     
         return dqdt
 

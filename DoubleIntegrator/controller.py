@@ -39,8 +39,10 @@ class ControllerObj(object):
         #u = self.countStuffController()
         #u, actionIdx = self.countInverseDistancesController()
         #u, actionIdx = self.supervisedDPController()
-        u, actionIdx = self.polyController()
+        #u, actionIdx = self.polyController()
         #u, actionIdx = self.threeController()
+        u = 1
+        actionIdx = 0
 
         if randomize:
             if np.random.uniform(0,1,1)[0] < self.epsilonRand:
