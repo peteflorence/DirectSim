@@ -32,8 +32,8 @@ class CarPlant(object):
 
         dqdt[0] = state[2]
         dqdt[1] = state[3]
-        dqdt[2] = u[0]
-        dqdt[3] = u[1]
+        dqdt[2] = u[0] - 1/20.0*np.sign(state[2])*state[2]**2
+        dqdt[3] = u[1] - 1/20.0*np.sign(state[3])*state[3]**2
     
         return dqdt
 

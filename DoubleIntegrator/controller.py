@@ -41,8 +41,7 @@ class ControllerObj(object):
         #u, actionIdx = self.supervisedDPController()
         #u, actionIdx = self.polyController()
         #u, actionIdx = self.threeController()
-        u = [1,-2]
-        actionIdx = 0
+        u, actionIdx = self.JohnCarterController()
 
         if randomize:
             if np.random.uniform(0,1,1)[0] < self.epsilonRand:
@@ -52,6 +51,28 @@ class ControllerObj(object):
                 u = self.actionSet[actionIdx]
 
         return u, actionIdx
+
+    def JohnCarterController(self):
+
+        polyCoefficients = self.SensorApproximator.polyFitConstrainedLP(self.distances)
+        u_x = 25.0
+
+        if polyCoefficients == None:
+            print "no polyCoefficients"
+            return [u_x, 0.0], 0
+
+        if polyCoefficients[0] > 15:
+            u_y = 0
+        else:
+            u_y = 10000 / (polyCoefficients[0] * polyCoefficients[1])
+            if u_y > 50:
+                u_y = 50
+            if u_y < -50:
+                u_y = -50
+
+        u = [u_x, -u_y]
+        return u, 0
+
 
 
     def threeController(self):
