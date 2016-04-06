@@ -61,10 +61,10 @@ class World(object):
             np.random.seed(randomSeed)
 
         d = DebugData()
-        worldXmin = -50
-        worldXmax = 50
-        worldYmin = -50
-        worldYmax = 50
+        worldXmin = -5
+        worldXmax = 25
+        worldYmin = -20
+        worldYmax = 20
         #print "boundaries done"
 
         worldArea = (worldXmax-worldXmin)*(worldYmax-worldYmin)
@@ -90,11 +90,11 @@ class World(object):
             secondX = obsXmin + np.random.rand()*(obsXmax-obsXmin)
             secondY = obsYmin + np.random.rand()*(obsYmax-obsYmin)
 
-            firstEndpt = (firstX,firstY,0.0)
-            secondEndpt = (secondX,secondY,0.0)
+            firstEndpt = (firstX,firstY,0.2)
+            secondEndpt = (firstX,firstY,-0.2)
 
             #d.addLine(firstEndpt, secondEndpt, radius=2*np.random.randn())
-            d.addLine(firstEndpt, secondEndpt, radius=0.1)
+            d.addLine(firstEndpt, secondEndpt, radius=1.0)
 
 
         obj = vis.showPolyData(d.getPolyData(), 'world')

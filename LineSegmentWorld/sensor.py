@@ -6,7 +6,7 @@ import director.objectmodel as om
 
 class SensorObj(object):
 
-    def __init__(self, FOV=28.0, numRays=11, rayLength=20):
+    def __init__(self, FOV=90.0, numRays=21, rayLength=20):
         self.numRays = numRays
         self.rayLength = rayLength
 

@@ -59,7 +59,7 @@ class Simulator(object):
         self.options['World'] = dict()
         self.options['World']['obstaclesInnerFraction'] = 0.98
         self.options['World']['randomSeed'] = 40
-        self.options['World']['percentObsDensity'] = 4
+        self.options['World']['percentObsDensity'] = 12
         self.options['World']['nonRandomWorld'] = True
         self.options['World']['circleRadius'] = 1.0
         self.options['World']['scale'] = 1
@@ -189,8 +189,11 @@ class Simulator(object):
         runData = dict()
         startIdx = self.counter
 
+        thisRunIndex = 0
+        NMaxSteps = 100
 
         while (self.counter < self.numTimesteps - 1):
+            thisRunIndex += 1
             idx = self.counter
             currentTime = self.t[idx]
             self.stateOverTime[idx,:] = currentCarState
@@ -245,6 +248,10 @@ class Simulator(object):
             # break if we are in collision
             if self.checkInCollision(nextRaycast):
                 if self.verbose: print "Had a collision, terminating simulation"
+                break
+
+            if thisRunIndex > NMaxSteps:
+                print "was safe during N steps"
                 break
 
             if self.counter >= simulationCutoff:
