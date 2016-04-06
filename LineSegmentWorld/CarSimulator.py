@@ -59,7 +59,7 @@ class Simulator(object):
         self.options['World'] = dict()
         self.options['World']['obstaclesInnerFraction'] = 0.98
         self.options['World']['randomSeed'] = 40
-        self.options['World']['percentObsDensity'] = 12
+        self.options['World']['percentObsDensity'] = 15
         self.options['World']['nonRandomWorld'] = True
         self.options['World']['circleRadius'] = 1.0
         self.options['World']['scale'] = 1

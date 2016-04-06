@@ -37,9 +37,9 @@ class ControllerObj(object):
         
 
         #u = self.countStuffController()
-        u, actionIdx = self.countInverseDistancesController()
+        #u, actionIdx = self.countInverseDistancesController()
         #u, actionIdx = self.supervisedDPController()
-        #u, actionIdx = self.polyController()
+        u, actionIdx = self.polyController()
         #u, actionIdx = self.threeController()
 
         if randomize:
