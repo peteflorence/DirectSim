@@ -61,6 +61,17 @@ class World(object):
         print "positions were ", firstRaycastLocations
 
         d = DebugData()
+
+        firstX = -0.4
+        firstY = 0.0
+
+        secondX = firstRaycastLocations[0,0]
+        secondY = firstRaycastLocations[0,1]
+            
+        firstEndpt = (firstX,firstY,0.0)
+        secondEndpt = (secondX,secondY,0.0)
+
+        d.addLine(firstEndpt, secondEndpt, radius=0.2)
         
         for i in range(0,len(firstRaycastLocations[:,0])-1):
             print "firstRaycastLocations", i
@@ -75,6 +86,17 @@ class World(object):
             secondEndpt = (secondX,secondY,0.0)
 
             d.addLine(firstEndpt, secondEndpt, radius=0.2)
+
+        firstX = firstRaycastLocations[len(firstRaycastLocations)-1,0]
+        firstY = firstRaycastLocations[len(firstRaycastLocations)-1,1]
+
+        secondX = -0.4
+        secondY = 0.0
+            
+        firstEndpt = (firstX,firstY,0.0)
+        secondEndpt = (secondX,secondY,0.0)
+
+        d.addLine(firstEndpt, secondEndpt, radius=0.2)
 
 
         obj = vis.showPolyData(d.getPolyData(), 'world')

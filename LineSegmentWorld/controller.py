@@ -6,7 +6,7 @@ import math
 
 class ControllerObj(object):
 
-    def __init__(self, sensor, sensor_approximator, u_max=4, epsilonRand=0.4):
+    def __init__(self, sensor, sensor_approximator, u_max=0.4, epsilonRand=0.4):
         self.Sensor = sensor
         self.SensorApproximator = sensor_approximator
         self.SensorApproximator.initializeThetaVector(self.Sensor.angleGrid)
