@@ -17,7 +17,7 @@ sim.circleRadius           = 2.5
 
 
 sim.initialize()
-sim.defaultControllerTime  = 100
+sim.defaultControllerTime  = 4
 sim.percentObsDensity      = 2
 sim.worldScale             = 1
 sim.run()

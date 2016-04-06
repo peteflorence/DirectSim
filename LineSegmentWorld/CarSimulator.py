@@ -184,8 +184,9 @@ class Simulator(object):
         self.setRobotFrameState(currentCarState[0], currentCarState[1], currentCarState[2])
         
         firstRaycast = self.Sensor.raycastAll(self.frame)
+        firstRaycastLocations = self.Sensor.raycastAllLocations(self.frame)
 
-        self.LineSegmentWorld = World.buildLineSegmentWorld(firstRaycast)
+        self.LineSegmentWorld = World.buildLineSegmentWorld(firstRaycastLocations)
         self.LineSegmentLocator = World.buildCellLocator(self.LineSegmentWorld.visObj.polyData)
         self.Sensor.setLocator(self.LineSegmentLocator)
 

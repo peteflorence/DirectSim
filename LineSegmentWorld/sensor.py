@@ -55,3 +55,20 @@ class SensorObj(object):
         result = locator.IntersectWithLine(rayOrigin, rayEnd, tolerance, lineT, pt, pcoords, subId)
 
         return pt if result else None
+
+    def raycastAllLocations(self, frame):
+        
+        locations = np.zeros((self.numRays,3))
+
+        origin = np.array(frame.transform.GetPosition())
+
+        for i in range(0,self.numRays):
+            ray = self.rays[:,i]
+            rayTransformed = np.array(frame.transform.TransformNormal(ray))
+            intersection = self.raycast(self.locator, origin, origin + rayTransformed*self.rayLength)
+            if intersection is None:
+                locations[i,:] = ray * self.rayLength
+            else:
+                locations[i] = intersection
+
+        return locations

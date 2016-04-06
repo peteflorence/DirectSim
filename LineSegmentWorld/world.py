@@ -54,23 +54,27 @@ class World(object):
 
     
     @staticmethod
-    def buildLineSegmentWorld(firstRaycast):
+    def buildLineSegmentWorld(firstRaycastLocations):
         print "building line segment world"
 
-        print "raycast was ", firstRaycast
+
+        print "positions were ", firstRaycastLocations
 
         d = DebugData()
         
-        for i in firstRaycast:
-            print "firstRaycast", i
+        for i in range(0,len(firstRaycastLocations[:,0])-1):
+            print "firstRaycastLocations", i
             
-            firstX = 10.0
-            firstY = -2.0
-            
-            firstEndpt = (firstX,firstY,0.2)
-            secondEndpt = (firstX,firstY,-0.2)
+            firstX = firstRaycastLocations[i,0]
+            firstY = firstRaycastLocations[i,1]
 
-            d.addLine(firstEndpt, secondEndpt, radius=1.0)
+            secondX = firstRaycastLocations[i+1,0]
+            secondY = firstRaycastLocations[i+1,1]
+            
+            firstEndpt = (firstX,firstY,0.0)
+            secondEndpt = (secondX,secondY,0.0)
+
+            d.addLine(firstEndpt, secondEndpt, radius=0.2)
 
 
         obj = vis.showPolyData(d.getPolyData(), 'world')
