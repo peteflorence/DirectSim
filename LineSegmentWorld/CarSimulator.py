@@ -146,7 +146,7 @@ class Simulator(object):
 
         # create the things needed for simulation
         om.removeFromObjectModel(om.findObjectByName('world'))
-        self.world = World.buildLineSegmentWorld(percentObsDensity=self.options['World']['percentObsDensity'],
+        self.world = World.buildLineSegmentTestWorld(percentObsDensity=self.options['World']['percentObsDensity'],
                                             circleRadius=self.options['World']['circleRadius'],
                                             nonRandom=self.options['World']['nonRandomWorld'],
                                             scale=self.options['World']['scale'],
@@ -182,7 +182,13 @@ class Simulator(object):
         currentCarState = np.copy(self.Car.state)
         nextCarState = np.copy(self.Car.state)
         self.setRobotFrameState(currentCarState[0], currentCarState[1], currentCarState[2])
+        
         firstRaycast = self.Sensor.raycastAll(self.frame)
+
+        self.LineSegmentWorld = World.buildLineSegmentWorld(firstRaycast)
+        self.LineSegmentLocator = World.buildCellLocator(self.LineSegmentWorld.visObj.polyData)
+        self.Sensor.setLocator(self.LineSegmentLocator)
+
         nextRaycast = np.zeros(self.Sensor.numRays)
 
         # record the reward data
@@ -203,6 +209,7 @@ class Simulator(object):
             self.setRobotFrameState(x,y,theta)
             # self.setRobotState(currentCarState[0], currentCarState[1], currentCarState[2])
             currentRaycast = self.Sensor.raycastAll(self.frame)
+            print "current Raycast ", currentRaycast
             self.raycastData[idx,:] = currentRaycast
             S_current = (currentCarState, currentRaycast)
 
@@ -467,7 +474,7 @@ class Simulator(object):
             ray = self.Sensor.rays[:,i]
             rayTransformed = np.array(frame.transform.TransformNormal(ray))
             #print "rayTransformed is", rayTransformed
-            intersection = self.Sensor.raycast(self.locator, origin, origin + rayTransformed*self.Sensor.rayLength)
+            intersection = self.Sensor.raycast(self.LineSegmentLocator, origin, origin + rayTransformed*self.Sensor.rayLength)
 
             if intersection is not None:
                 d.addLine(origin, intersection, color=[1,0,0])

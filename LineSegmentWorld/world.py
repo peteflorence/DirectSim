@@ -52,8 +52,37 @@ class World(object):
 
         return worldXmin, worldXmax, worldYmin, worldYmax
 
+    
     @staticmethod
-    def buildLineSegmentWorld(percentObsDensity, nonRandom=False, circleRadius=3, scale=1.0, randomSeed=5,
+    def buildLineSegmentWorld(firstRaycast):
+        print "building line segment world"
+
+        print "raycast was ", firstRaycast
+
+        d = DebugData()
+        
+        for i in firstRaycast:
+            print "firstRaycast", i
+            
+            firstX = 10.0
+            firstY = -2.0
+            
+            firstEndpt = (firstX,firstY,0.2)
+            secondEndpt = (firstX,firstY,-0.2)
+
+            d.addLine(firstEndpt, secondEndpt, radius=1.0)
+
+
+        obj = vis.showPolyData(d.getPolyData(), 'world')
+
+        world = World()
+        world.visObj = obj
+        
+        return world
+
+
+    @staticmethod
+    def buildLineSegmentTestWorld(percentObsDensity, nonRandom=False, circleRadius=3, scale=1.0, randomSeed=5,
                          obstaclesInnerFraction=1.0):
         #print "building circle world"
 
