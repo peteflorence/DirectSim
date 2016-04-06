@@ -33,7 +33,7 @@ class Simulator(object):
                  circleRadius=0.7, worldScale=1.0, autoInitialize=True, verbose=True):
         self.verbose = verbose
         self.startSimTime = time.time()
-        self.collisionThreshold = 1.0
+        self.collisionThreshold = 0.4
         self.randomSeed = 5
         self.Sensor_rayLength = 8
 
@@ -59,10 +59,10 @@ class Simulator(object):
         self.options['World'] = dict()
         self.options['World']['obstaclesInnerFraction'] = 0.98
         self.options['World']['randomSeed'] = 40
-        self.options['World']['percentObsDensity'] = 5.0
+        self.options['World']['percentObsDensity'] = 4
         self.options['World']['nonRandomWorld'] = True
         self.options['World']['circleRadius'] = 1.0
-        self.options['World']['scale'] = 10
+        self.options['World']['scale'] = 1
 
         self.options['Sensor'] = dict()
         self.options['Sensor']['rayLength'] = 20
@@ -70,7 +70,7 @@ class Simulator(object):
 
 
         self.options['Car'] = dict()
-        self.options['Car']['velocity'] = 20
+        self.options['Car']['velocity'] = 4.0
 
         self.options['dt'] = 0.05
 
@@ -146,7 +146,7 @@ class Simulator(object):
 
         # create the things needed for simulation
         om.removeFromObjectModel(om.findObjectByName('world'))
-        self.world = World.buildCircleWorld(percentObsDensity=self.options['World']['percentObsDensity'],
+        self.world = World.buildLineSegmentWorld(percentObsDensity=self.options['World']['percentObsDensity'],
                                             circleRadius=self.options['World']['circleRadius'],
                                             nonRandom=self.options['World']['nonRandomWorld'],
                                             scale=self.options['World']['scale'],
@@ -176,12 +176,13 @@ class Simulator(object):
     def runSingleSimulation(self, controllerType='default', simulationCutoff=None):
 
 
-        self.setRandomCollisionFreeInitialState()
+        #self.setRandomCollisionFreeInitialState()
+        self.setInitialStateAtZero()
 
         currentCarState = np.copy(self.Car.state)
         nextCarState = np.copy(self.Car.state)
         self.setRobotFrameState(currentCarState[0], currentCarState[1], currentCarState[2])
-        currentRaycast = self.Sensor.raycastAll(self.frame)
+        firstRaycast = self.Sensor.raycastAll(self.frame)
         nextRaycast = np.zeros(self.Sensor.numRays)
 
         # record the reward data
@@ -195,7 +196,8 @@ class Simulator(object):
             self.stateOverTime[idx,:] = currentCarState
             x = self.stateOverTime[idx,0]
             y = self.stateOverTime[idx,1]
-            self.setRobotFrameState(x,y,0.0)
+            theta = self.stateOverTime[idx,2]
+            self.setRobotFrameState(x,y,theta)
             # self.setRobotState(currentCarState[0], currentCarState[1], currentCarState[2])
             currentRaycast = self.Sensor.raycastAll(self.frame)
             self.raycastData[idx,:] = currentRaycast
@@ -210,7 +212,7 @@ class Simulator(object):
             if controllerType in ["default", "defaultRandom"]:
                 controlInput, controlInputIdx = self.Controller.computeControlInput(currentCarState,
                                                                             currentTime, self.frame,
-                                                                            raycastDistance=currentRaycast,
+                                                                            raycastDistance=firstRaycast,
                                                                             randomize=False)
 
             self.controlInputData[idx] = controlInput
@@ -231,7 +233,7 @@ class Simulator(object):
             if controllerType in ["default", "defaultRandom"]:
                 nextControlInput, nextControlInputIdx = self.Controller.computeControlInput(nextCarState,
                                                                             currentTime, self.frame,
-                                                                            raycastDistance=nextRaycast,
+                                                                            raycastDistance=firstRaycast,
                                                                             randomize=False)
 
 
@@ -272,9 +274,9 @@ class Simulator(object):
 
         self.t = np.arange(0.0, self.endTime, dt)
         maxNumTimesteps = np.size(self.t)
-        self.stateOverTime = np.zeros((maxNumTimesteps+1, 4))
+        self.stateOverTime = np.zeros((maxNumTimesteps+1, 3))
         self.raycastData = np.zeros((maxNumTimesteps+1, self.Sensor.numRays))
-        self.controlInputData = np.zeros((maxNumTimesteps+1,2))
+        self.controlInputData = np.zeros(maxNumTimesteps+1)
         self.numTimesteps = maxNumTimesteps
 
         self.controllerTypeOrder = ['default']
@@ -354,6 +356,20 @@ class Simulator(object):
         return x,y,theta
 
 
+    
+    def setInitialStateAtZero(self):
+        
+        x = 0.0
+        y = 0.0
+        theta = 0.0
+        
+        self.Car.setCarState(x,y,theta)
+        self.setRobotFrameState(x,y,theta)
+
+        return x,y,theta
+
+
+
     def setRandomCollisionFreeInitialState(self):
         tol = 5
 
@@ -361,16 +377,15 @@ class Simulator(object):
             
             x = np.random.uniform(self.world.Xmin+tol, self.world.Xmax-tol, 1)[0]
             y = np.random.uniform(self.world.Ymin+tol, self.world.Ymax-tol, 1)[0]
-            #theta = np.random.uniform(0,2*np.pi,1)[0]
-            theta = 0 #always forward
-
-            self.Car.setCarState(x,y,0,0)
+            theta = np.random.uniform(0,2*np.pi,1)[0]
+            
+            self.Car.setCarState(x,y,theta)
             self.setRobotFrameState(x,y,theta)
 
             if not self.checkInCollision():
                 break
 
-        return x,y,0,0
+        return x,y,theta
 
     def setupPlayback(self):
 
@@ -406,11 +421,8 @@ class Simulator(object):
         w.showMaximized()
 
         self.frame.connectFrameModified(self.updateDrawIntersection)
-        self.frame.connectFrameModified(self.updateDrawPolyApprox)
         self.updateDrawIntersection(self.frame)
-        self.updateDrawPolyApprox(self.frame)
         
-
         applogic.resetCamera(viewDirection=[0.2,0,-1])
         self.view.showMaximized()
         self.view.raise_()
@@ -431,41 +443,7 @@ class Simulator(object):
         self.runBatchSimulation()
 
         if launchApp:
-            self.setupPlayback()
-
-    def updateDrawPolyApprox(self, frame):
-        distances = self.Sensor.raycastAll(frame)
-        polyCoefficients = self.SensorApproximator.polyFitConstrainedLP(distances)
-        if polyCoefficients == None:
-            polyCoefficients = [0,0]
-    
-        d = DebugData()
-        
-        x = self.SensorApproximator.approxThetaVector
-        y = x * 0.0
-        for index,val in enumerate(y):
-            y[index] = self.horner(x[index],polyCoefficients)
-        
-        origin = np.array(frame.transform.GetPosition())
-        origin[2] = -0.001
-
-        for i in xrange(self.SensorApproximator.numApproxPoints):
-            if y[i] > 0:
-                ray = self.SensorApproximator.approxRays[:,i]
-                rayTransformed = np.array(frame.transform.TransformNormal(ray))
-                intersection = origin + rayTransformed * y[i]
-                intersection[2] = -0.001
-                d.addLine(origin, intersection, color=[0,0,1])
-
-        vis.updatePolyData(d.getPolyData(), 'polyApprox', colorByName='RGB255')
-
-    def horner(self, x, weights):
-        coefficients = weights[::-1]
-        result = 0
-        for i in coefficients:
-            result = result * x + i
-        return result
-        
+            self.setupPlayback()    
 
     def updateDrawIntersection(self, frame):
 
@@ -560,8 +538,8 @@ class Simulator(object):
         numSteps = len(self.stateOverTime)
         idx = int(np.floor(numSteps*(1.0*value/self.sliderMax)))
         idx = min(idx, numSteps-1)
-        x,y, xdot, ydot = self.stateOverTime[idx]
-        self.setRobotFrameState(x,y,0)
+        x,y,theta = self.stateOverTime[idx]
+        self.setRobotFrameState(x,y,theta)
         self.sliderMovedByPlayTimer = False
 
     def onPlayButton(self):
