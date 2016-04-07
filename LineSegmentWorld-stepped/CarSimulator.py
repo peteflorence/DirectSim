@@ -59,7 +59,7 @@ class Simulator(object):
         self.options['World'] = dict()
         self.options['World']['obstaclesInnerFraction'] = 0.98
         self.options['World']['randomSeed'] = 40
-        self.options['World']['percentObsDensity'] = 10
+        self.options['World']['percentObsDensity'] = 0.0
         self.options['World']['nonRandomWorld'] = True
         self.options['World']['circleRadius'] = 1.0
         self.options['World']['scale'] = 1
@@ -155,8 +155,8 @@ class Simulator(object):
 
         om.removeFromObjectModel(om.findObjectByName('robot'))
         self.robot, self.frame = World.buildRobot()
-        self.locator = World.buildCellLocator(self.world.visObj.polyData)
-        self.Sensor.setLocator(self.locator)
+        # self.locator = World.buildCellLocator(self.world.visObj.polyData)
+        # self.Sensor.setLocator(self.locator)
         self.frame = self.robot.getChildFrame()
         self.frame.setProperty('Scale', 3)
         #self.frame.setProperty('Visible', False)
@@ -407,6 +407,14 @@ class Simulator(object):
         panel = QtGui.QWidget()
         l = QtGui.QHBoxLayout(panel)
 
+        showSensorsButton = QtGui.QPushButton('Initialize Sensors')
+        showSensorsButton.connect('clicked()', self.onShowSensorsButton)
+        l.addWidget(showSensorsButton)
+
+        firstRaycast = np.ones((21,1))*10.0 + np.random.randn(21,1)*1.0
+        print "firstRaycast initially is ", firstRaycast
+        self.drawFirstIntersections(self.frame, firstRaycast)
+
         playButton = QtGui.QPushButton('Play/Pause')
         playButton.connect('clicked()', self.onPlayButton)
 
@@ -456,6 +464,8 @@ class Simulator(object):
         l.addWidget(panel)
         w.showMaximized()
 
+        
+
         self.frame.connectFrameModified(self.updateDrawIntersection)
         self.updateDrawIntersection(self.frame)
         
@@ -474,6 +484,23 @@ class Simulator(object):
         print "Number of steps taken", self.counter
         self.app.start()
 
+    def drawFirstIntersections(self, frame, firstRaycast):
+        origin = np.array(frame.transform.GetPosition())
+        d = DebugData()
+
+        firstRaycastLocations = self.Sensor.invertRaycastsToLocations(self.frame, firstRaycast)
+
+        for i in xrange(self.Sensor.numRays):
+            endpoint = firstRaycastLocations[i,:]
+
+            if firstRaycast[i] == 20.0:
+                d.addLine(origin, endpoint, color=[0,1,0])
+            else:
+                d.addLine(origin, endpoint, color=[1,0,0])
+
+        vis.updatePolyData(d.getPolyData(), 'rays', colorByName='RGB255')
+
+        self.LineSegmentWorld = World.buildLineSegmentWorld(firstRaycastLocations)
        
 
     def updateDrawIntersection(self, frame):
@@ -491,14 +518,14 @@ class Simulator(object):
             ray = self.Sensor.rays[:,i]
             rayTransformed = np.array(frame.transform.TransformNormal(ray))
             #print "rayTransformed is", rayTransformed
-            intersection = self.Sensor.raycast(self.LineSegmentLocator, origin, origin + rayTransformed*self.Sensor.rayLength)
+            intersection = origin + rayTransformed*self.Sensor.rayLength
 
             if intersection is not None:
                 d.addLine(origin, intersection, color=[1,0,0])
             else:
                 d.addLine(origin, origin+rayTransformed*self.Sensor.rayLength, color=colorMaxRange)
 
-        vis.updatePolyData(d.getPolyData(), 'rays', colorByName='RGB255')
+        #vis.updatePolyData(d.getPolyData(), 'rays', colorByName='RGB255')
 
         #camera = self.view.camera()
         #camera.SetFocalPoint(frame.transform.GetPosition())
@@ -573,6 +600,12 @@ class Simulator(object):
         self.setRobotFrameState(x,y,theta)
         self.sliderMovedByPlayTimer = False
 
+    def onShowSensorsButton(self):
+        print "I pressed the show sensors button"
+        firstRaycast = np.ones((21,1))*10.0 + np.random.randn(21,1)*1.0
+        print "firstRaycast is ", firstRaycast
+        self.drawFirstIntersections(self.frame, firstRaycast)
+        
     def onPlayButton(self):
 
         if self.playTimer.isActive():
@@ -620,12 +653,10 @@ class Simulator(object):
         self.controlInputData = np.zeros(maxNumTimesteps+1)
         self.numTimesteps = maxNumTimesteps
 
-        firstRaycast = np.ones((21,1))*20
-        firstRaycastLocations = self.Sensor.raycastAllLocations(self.frame)
 
-        self.LineSegmentWorld = World.buildLineSegmentWorld(firstRaycastLocations)
-        self.LineSegmentLocator = World.buildCellLocator(self.LineSegmentWorld.visObj.polyData)
-        self.Sensor.setLocator(self.LineSegmentLocator)
+        
+        #self.LineSegmentLocator = World.buildCellLocator(self.LineSegmentWorld.visObj.polyData)
+        #self.Sensor.setLocator(self.LineSegmentLocator)
 
         #self.runBatchSimulation()
 

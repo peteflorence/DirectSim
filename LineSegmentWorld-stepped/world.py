@@ -71,7 +71,7 @@ class World(object):
         firstEndpt = (firstX,firstY,0.0)
         secondEndpt = (secondX,secondY,0.0)
 
-        d.addLine(firstEndpt, secondEndpt, radius=0.2)
+        d.addLine(firstEndpt, secondEndpt, radius=0.1)
         
         for i in range(0,len(firstRaycastLocations[:,0])-1):
             print "firstRaycastLocations", i
@@ -85,7 +85,7 @@ class World(object):
             firstEndpt = (firstX,firstY,0.0)
             secondEndpt = (secondX,secondY,0.0)
 
-            d.addLine(firstEndpt, secondEndpt, radius=0.2)
+            d.addLine(firstEndpt, secondEndpt, radius=0.1)
 
         firstX = firstRaycastLocations[len(firstRaycastLocations)-1,0]
         firstY = firstRaycastLocations[len(firstRaycastLocations)-1,1]
@@ -96,10 +96,10 @@ class World(object):
         firstEndpt = (firstX,firstY,0.0)
         secondEndpt = (secondX,secondY,0.0)
 
-        d.addLine(firstEndpt, secondEndpt, radius=0.2)
+        d.addLine(firstEndpt, secondEndpt, radius=0.1)
 
 
-        obj = vis.showPolyData(d.getPolyData(), 'world')
+        obj = vis.updatePolyData(d.getPolyData(), 'world')
 
         world = World()
         world.visObj = obj
