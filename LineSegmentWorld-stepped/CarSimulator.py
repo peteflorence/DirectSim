@@ -282,17 +282,8 @@ class Simulator(object):
 
     def runBatchSimulation(self, endTime=None, dt=0.05):
 
-        # for use in playback
-        self.dt = self.options['dt']
-
-        self.endTime = self.defaultControllerTime # used to be the sum of the other times as well
-
-        self.t = np.arange(0.0, self.endTime, dt)
-        maxNumTimesteps = np.size(self.t)
-        self.stateOverTime = np.zeros((maxNumTimesteps+1, 3))
-        self.raycastData = np.zeros((maxNumTimesteps+1, self.Sensor.numRays))
-        self.controlInputData = np.zeros(maxNumTimesteps+1)
-        self.numTimesteps = maxNumTimesteps
+        
+        
 
         self.controllerTypeOrder = ['default']
         self.counter = 0
@@ -425,6 +416,36 @@ class Simulator(object):
         slider.setMaximum(self.sliderMax)
         self.slider = slider
 
+        # slider2 = QtGui.QSlider(QtCore.Qt.Horizontal)
+        # slider2.setMaximum(self.sliderMax)
+        # l.addWidget(slider2)
+
+        # slider3 = QtGui.QSlider(QtCore.Qt.Horizontal)
+        # slider3.setMaximum(self.sliderMax)
+        # l.addWidget(slider3)
+
+        # slider4 = QtGui.QSlider(QtCore.Qt.Horizontal)
+        # slider4.setMaximum(self.sliderMax)
+        # l.addWidget(slider4)
+
+        # slider5 = QtGui.QSlider(QtCore.Qt.Horizontal)
+        # slider5.setMaximum(self.sliderMax)
+        # l.addWidget(slider5)
+
+        # slider5 = QtGui.QSlider(QtCore.Qt.Horizontal)
+        # slider5.setMaximum(self.sliderMax)
+        # l.addWidget(slider5)
+
+        # slider6 = QtGui.QSlider(QtCore.Qt.Horizontal)
+        # slider6.setMaximum(self.sliderMax)
+        # l.addWidget(slider6)
+
+        # slider7 = QtGui.QSlider(QtCore.Qt.Horizontal)
+        # slider7.setMaximum(self.sliderMax)
+        # l.addWidget(slider7)
+
+
+
         l.addWidget(playButton)
         l.addWidget(slider)
 
@@ -453,12 +474,7 @@ class Simulator(object):
         print "Number of steps taken", self.counter
         self.app.start()
 
-    def run(self, launchApp=True):
-        self.counter = 1
-        self.runBatchSimulation()
-
-        if launchApp:
-            self.setupPlayback()    
+       
 
     def updateDrawIntersection(self, frame):
 
@@ -588,6 +604,34 @@ class Simulator(object):
         my_shelf['idxDict'] = self.idxDict
         my_shelf['counter'] = self.counter
         my_shelf.close()
+
+    def run(self, launchApp=True):
+        self.counter = 1
+        
+        # for use in playback
+        self.dt = self.options['dt']
+        self.endTime = self.defaultControllerTime # used to be the sum of the other times as well
+
+        self.t = np.arange(0.0, self.endTime, self.dt)
+        maxNumTimesteps = np.size(self.t)
+
+        self.stateOverTime = np.zeros((maxNumTimesteps+1, 3))
+        self.raycastData = np.zeros((maxNumTimesteps+1, self.Sensor.numRays))
+        self.controlInputData = np.zeros(maxNumTimesteps+1)
+        self.numTimesteps = maxNumTimesteps
+
+        firstRaycast = np.ones((21,1))*20
+        firstRaycastLocations = self.Sensor.raycastAllLocations(self.frame)
+
+        self.LineSegmentWorld = World.buildLineSegmentWorld(firstRaycastLocations)
+        self.LineSegmentLocator = World.buildCellLocator(self.LineSegmentWorld.visObj.polyData)
+        self.Sensor.setLocator(self.LineSegmentLocator)
+
+        #self.runBatchSimulation()
+
+
+        if launchApp:
+            self.setupPlayback() 
 
 
     @staticmethod
