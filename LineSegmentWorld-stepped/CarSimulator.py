@@ -155,8 +155,6 @@ class Simulator(object):
 
         om.removeFromObjectModel(om.findObjectByName('robot'))
         self.robot, self.frame = World.buildRobot()
-        # self.locator = World.buildCellLocator(self.world.visObj.polyData)
-        # self.Sensor.setLocator(self.locator)
         self.frame = self.robot.getChildFrame()
         self.frame.setProperty('Scale', 3)
         #self.frame.setProperty('Visible', False)
@@ -415,6 +413,10 @@ class Simulator(object):
         print "firstRaycast initially is ", firstRaycast
         self.drawFirstIntersections(self.frame, firstRaycast)
 
+        runSimButton = QtGui.QPushButton('Run simulation')
+        runSimButton.connect('clicked()', self.onRunSimButton)
+        l.addWidget(runSimButton)
+
         playButton = QtGui.QPushButton('Play/Pause')
         playButton.connect('clicked()', self.onPlayButton)
 
@@ -501,6 +503,10 @@ class Simulator(object):
         vis.updatePolyData(d.getPolyData(), 'rays', colorByName='RGB255')
 
         self.LineSegmentWorld = World.buildLineSegmentWorld(firstRaycastLocations)
+        self.LineSegmentLocator = World.buildCellLocator(self.LineSegmentWorld.visObj.polyData)
+        self.Sensor.setLocator(self.LineSegmentLocator)
+
+        
        
 
     def updateDrawIntersection(self, frame):
@@ -518,14 +524,14 @@ class Simulator(object):
             ray = self.Sensor.rays[:,i]
             rayTransformed = np.array(frame.transform.TransformNormal(ray))
             #print "rayTransformed is", rayTransformed
-            intersection = origin + rayTransformed*self.Sensor.rayLength
+            intersection = self.Sensor.raycast(self.LineSegmentLocator, origin, origin + rayTransformed*self.Sensor.rayLength)
 
             if intersection is not None:
                 d.addLine(origin, intersection, color=[1,0,0])
             else:
                 d.addLine(origin, origin+rayTransformed*self.Sensor.rayLength, color=colorMaxRange)
 
-        #vis.updatePolyData(d.getPolyData(), 'rays', colorByName='RGB255')
+        vis.updatePolyData(d.getPolyData(), 'rays', colorByName='RGB255')
 
         #camera = self.view.camera()
         #camera.SetFocalPoint(frame.transform.GetPosition())
@@ -602,9 +608,13 @@ class Simulator(object):
 
     def onShowSensorsButton(self):
         print "I pressed the show sensors button"
+        self.setInitialStateAtZero()
         firstRaycast = np.ones((21,1))*10.0 + np.random.randn(21,1)*1.0
         print "firstRaycast is ", firstRaycast
         self.drawFirstIntersections(self.frame, firstRaycast)
+
+    def onRunSimButton(self):
+        self.runBatchSimulation()
         
     def onPlayButton(self):
 
@@ -652,11 +662,6 @@ class Simulator(object):
         self.raycastData = np.zeros((maxNumTimesteps+1, self.Sensor.numRays))
         self.controlInputData = np.zeros(maxNumTimesteps+1)
         self.numTimesteps = maxNumTimesteps
-
-
-        
-        #self.LineSegmentLocator = World.buildCellLocator(self.LineSegmentWorld.visObj.polyData)
-        #self.Sensor.setLocator(self.LineSegmentLocator)
 
         #self.runBatchSimulation()
 
