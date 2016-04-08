@@ -152,7 +152,7 @@ class World(object):
             d.addLine(firstEndpt, secondEndpt, radius=1.0)
 
 
-        obj = vis.showPolyData(d.getPolyData(), 'world')
+        obj = vis.updatePolyData(d.getPolyData(), 'world')
 
         world = World()
         world.visObj = obj

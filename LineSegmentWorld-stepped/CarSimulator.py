@@ -24,6 +24,18 @@ from sensor import SensorObj
 from sensorApproximator import SensorApproximatorObj
 from controller import ControllerObj
 
+from director import vieweventfilter
+
+class MyViewBehavior(vieweventfilter.ViewEventFilter):
+
+
+
+
+    def onLeftButtonPress(self, event):
+        if event.modifiers() == QtCore.Qt.AltModifier:
+            print 'onRightclick'
+            self.consumeEvent()
+
 
 
 class Simulator(object):
@@ -155,6 +167,8 @@ class Simulator(object):
 
         om.removeFromObjectModel(om.findObjectByName('robot'))
         self.robot, self.frame = World.buildRobot()
+        
+
         self.frame = self.robot.getChildFrame()
         self.frame.setProperty('Scale', 3)
         #self.frame.setProperty('Visible', False)
@@ -184,9 +198,9 @@ class Simulator(object):
         firstRaycast = self.Sensor.raycastAll(self.frame)
         firstRaycastLocations = self.Sensor.raycastAllLocations(self.frame)
 
-        self.LineSegmentWorld = World.buildLineSegmentWorld(firstRaycastLocations)
-        self.LineSegmentLocator = World.buildCellLocator(self.LineSegmentWorld.visObj.polyData)
-        self.Sensor.setLocator(self.LineSegmentLocator)
+        # self.LineSegmentWorld = World.buildLineSegmentWorld(firstRaycastLocations)
+        # self.LineSegmentLocator = World.buildCellLocator(self.LineSegmentWorld.visObj.polyData)
+        # self.Sensor.setLocator(self.LineSegmentLocator)
 
         nextRaycast = np.zeros(self.Sensor.numRays)
 
@@ -405,13 +419,22 @@ class Simulator(object):
         panel = QtGui.QWidget()
         l = QtGui.QHBoxLayout(panel)
 
-        showSensorsButton = QtGui.QPushButton('Initialize Sensors')
+        showSensorsButton = QtGui.QPushButton('Initialize Sensors Randomly')
         showSensorsButton.connect('clicked()', self.onShowSensorsButton)
         l.addWidget(showSensorsButton)
 
         firstRaycast = np.ones((21,1))*10.0 + np.random.randn(21,1)*1.0
         print "firstRaycast initially is ", firstRaycast
         self.drawFirstIntersections(self.frame, firstRaycast)
+
+        randomObstaclesButton = QtGui.QPushButton('Initialize Random Obstacles')
+        randomObstaclesButton.connect('clicked()', self.onRandomObstaclesButton)
+        l.addWidget(randomObstaclesButton)
+
+        buildWorldFromRandomObstaclesButton = QtGui.QPushButton('World From Obstacles')
+        buildWorldFromRandomObstaclesButton.connect('clicked()', self.onBuildWorldFromRandomObstacles)
+        l.addWidget(buildWorldFromRandomObstaclesButton)
+
 
         runSimButton = QtGui.QPushButton('Run simulation')
         runSimButton.connect('clicked()', self.onRunSimButton)
@@ -466,6 +489,8 @@ class Simulator(object):
         l.addWidget(panel)
         w.showMaximized()
 
+        self.addViewBehaviors()
+
         
 
         self.frame.connectFrameModified(self.updateDrawIntersection)
@@ -485,6 +510,10 @@ class Simulator(object):
         print "Ticks (Hz)", simRate
         print "Number of steps taken", self.counter
         self.app.start()
+
+
+    def addViewBehaviors(self):
+        self.viewBehaviors = MyViewBehavior(self.view)
 
     def drawFirstIntersections(self, frame, firstRaycast):
         origin = np.array(frame.transform.GetPosition())
@@ -509,7 +538,9 @@ class Simulator(object):
         
        
 
-    def updateDrawIntersection(self, frame):
+    def updateDrawIntersection(self, frame, locator="None"):
+        if locator=="None":
+            locator = self.LineSegmentLocator
 
         origin = np.array(frame.transform.GetPosition())
         #print "origin is now at", origin
@@ -524,7 +555,7 @@ class Simulator(object):
             ray = self.Sensor.rays[:,i]
             rayTransformed = np.array(frame.transform.TransformNormal(ray))
             #print "rayTransformed is", rayTransformed
-            intersection = self.Sensor.raycast(self.LineSegmentLocator, origin, origin + rayTransformed*self.Sensor.rayLength)
+            intersection = self.Sensor.raycast(locator, origin, origin + rayTransformed*self.Sensor.rayLength)
 
             if intersection is not None:
                 d.addLine(origin, intersection, color=[1,0,0])
@@ -612,6 +643,30 @@ class Simulator(object):
         firstRaycast = np.ones((21,1))*10.0 + np.random.randn(21,1)*1.0
         print "firstRaycast is ", firstRaycast
         self.drawFirstIntersections(self.frame, firstRaycast)
+
+    def onRandomObstaclesButton(self):
+        print "random obstacles button pressed"
+        self.setInitialStateAtZero()
+        self.world = World.buildLineSegmentTestWorld(percentObsDensity=8.0,
+                                            circleRadius=self.options['World']['circleRadius'],
+                                            nonRandom=False,
+                                            scale=self.options['World']['scale'],
+                                            randomSeed=self.options['World']['randomSeed'],
+                                            obstaclesInnerFraction=self.options['World']['obstaclesInnerFraction'])
+        
+        self.locator = World.buildCellLocator(self.world.visObj.polyData)
+        self.Sensor.setLocator(self.locator)
+        self.updateDrawIntersection(self.frame, locator=self.locator)
+
+
+    def onBuildWorldFromRandomObstacles(self):
+        distances = self.Sensor.raycastAll(self.frame)
+        firstRaycastLocations = self.Sensor.invertRaycastsToLocations(self.frame, distances)
+        self.LineSegmentWorld = World.buildLineSegmentWorld(firstRaycastLocations)
+        self.LineSegmentLocator = World.buildCellLocator(self.LineSegmentWorld.visObj.polyData)
+        self.Sensor.setLocator(self.LineSegmentLocator)
+        self.updateDrawIntersection(self.frame)
+
 
     def onRunSimButton(self):
         self.runBatchSimulation()
