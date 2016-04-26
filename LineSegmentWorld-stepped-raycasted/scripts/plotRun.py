@@ -4,7 +4,7 @@ import shelve
 
 
 
-filename = "../data/lastest.out"
+filename = "../data/latest.out"
 
 my_shelf = shelve.open(filename)
 options = my_shelf['options']
