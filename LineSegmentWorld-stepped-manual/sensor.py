@@ -40,6 +40,11 @@ class SensorObj(object):
 
         return distances
 
+    def raycastAllManual(self,frame):
+        distances = np.zeros(self.numRays)
+        return distances
+
+
     def raycastAllFromCurrentFrameLocation(self):
         frame = om.findObjectByName('robot frame')
         return self.raycastAll(frame)

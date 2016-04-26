@@ -21,6 +21,7 @@ from PythonQt import QtCore, QtGui
 from world import World
 from car import CarPlant
 from sensor import SensorObj
+from sensorManual import SensorObjManual
 from sensorApproximator import SensorApproximatorObj
 from controller import ControllerObj
 
@@ -132,6 +133,8 @@ class Simulator(object):
 
         self.Sensor = SensorObj(rayLength=self.options['Sensor']['rayLength'],
                                 numRays=self.options['Sensor']['numRays'])
+        self.SensorManual = SensorObjManual(rayLength=self.options['Sensor']['rayLength'],
+                                numRays=self.options['Sensor']['numRays'])
 
         self.SensorApproximator = SensorApproximatorObj(numRays=self.options['Sensor']['numRays'], circleRadius=self.options['World']['circleRadius'], )
 
@@ -209,9 +212,13 @@ class Simulator(object):
             theta = self.stateOverTime[idx,2]
             self.setRobotFrameState(x,y,theta)
             # self.setRobotState(currentCarState[0], currentCarState[1], currentCarState[2])
+            
             currentRaycast = self.Sensor.raycastAll(self.frame)
-            print "current Raycast ", currentRaycast
             self.raycastData[idx,:] = currentRaycast
+
+            currentRaycastManual = self.SensorManual.raycastAllManual(self.frame)
+            self.raycastDataManual[idx,:] = currentRaycastManual
+
             S_current = (currentCarState, currentRaycast)
 
 
@@ -317,8 +324,11 @@ class Simulator(object):
         self.numTimesteps = self.counter + 1
         self.stateOverTime = self.stateOverTime[0:self.counter+1, :]
         self.raycastData = self.raycastData[0:self.counter+1, :]
+        self.raycastDataManual = self.raycastDataManual[0:self.counter+1, :]
         self.controlInputData = self.controlInputData[0:self.counter+1]
         self.endTime = 1.0*self.counter/self.numTimesteps*self.endTime
+        print np.shape(self.raycastData), "is raycastData"
+        print np.shape(self.raycastDataManual), "is raycastDataManual"
 
 
 
@@ -647,6 +657,7 @@ class Simulator(object):
         self.LineSegmentWorld = World.buildLineSegmentWorld(firstRaycastLocations)
         self.LineSegmentLocator = World.buildCellLocator(self.LineSegmentWorld.visObj.polyData)
         self.Sensor.setLocator(self.LineSegmentLocator)
+        self.SensorManual.setLineSegmentWorld(firstRaycastLocations)
         self.updateDrawIntersection(self.frame)
 
 
@@ -698,6 +709,7 @@ class Simulator(object):
 
         self.stateOverTime = np.zeros((maxNumTimesteps+1, 3))
         self.raycastData = np.zeros((maxNumTimesteps+1, self.Sensor.numRays))
+        self.raycastDataManual = np.zeros((maxNumTimesteps+1, self.Sensor.numRays))
         self.controlInputData = np.zeros(maxNumTimesteps+1)
         self.numTimesteps = maxNumTimesteps
 
