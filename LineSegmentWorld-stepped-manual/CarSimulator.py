@@ -276,6 +276,9 @@ class Simulator(object):
         # fill in the last state by hand
         self.stateOverTime[self.counter,:] = currentCarState
         self.raycastData[self.counter,:] = currentRaycast
+        self.raycastDataManual[self.counter,:] = currentRaycastManual
+        self.raycastDataManual[0,:] = firstRaycast
+
 
 
         # this just makes sure we don't get stuck in an infinite loop.
@@ -324,7 +327,7 @@ class Simulator(object):
         self.numTimesteps = self.counter + 1
         self.stateOverTime = self.stateOverTime[0:self.counter+1, :]
         self.raycastData = self.raycastData[0:self.counter+1, :]
-        self.raycastDataManual = self.raycastDataManual[0:self.counter+1, :]
+        self.raycastDataManual[-1,:] = self.raycastDataManual[-2,:]
         self.controlInputData = self.controlInputData[0:self.counter+1]
         self.endTime = 1.0*self.counter/self.numTimesteps*self.endTime
         print np.shape(self.raycastData), "is raycastData"
