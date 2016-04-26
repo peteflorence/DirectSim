@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.integrate as integrate
 
 class YTapeGenerator(object):
 
@@ -19,8 +20,14 @@ class YTapeGenerator(object):
         self.rays[0,:] = np.cos(self.angleGrid)
         self.rays[1,:] = -np.sin(self.angleGrid)
 
+        self.u_max = 2.0
+
+        self.v = 6.0
+
     def GenerateYTape(self, initial_distances):
         
+        YTape = np.zeros((self.numSteps+1,self.numRays))
+
         # convert initial_distances into initial_locations
         initial_locations = self.invertRaycastsToLocations(initial_distances)
 
@@ -28,22 +35,24 @@ class YTapeGenerator(object):
         self.setLineSegmentWorld(initial_locations)
 
         laser_distances = initial_distances
-        state = initial_state
+        YTape[0,:] = laser_distances
+        state = self.initial_state
 
         # loop:
-        for step in range(self.numSteps):
+        for step in range(0,self.numSteps):
 
             # compute control input from laser_distances (first time, they are the initial values)
             control_input = self.ComputeControlInput(laser_distances)
 
             # simulate one step of dynamics to get next state
-            state = self.simulateOneStep(start_state, control_input):
+            state = self.simulateOneStep(state, control_input)
 
             # set laser_distances by raycasting lasers from new state against the line segment world
-            laser_distances = raycastAllManual(self,state)
+            laser_distances = self.raycastAllManual(state)
+            YTape[1+step,:] = laser_distances
+            print step+1
 
-
-        pass
+        return YTape
 
 
     def invertRaycastsToLocations(self, raycasts):
@@ -53,21 +62,22 @@ class YTapeGenerator(object):
 
         origin = np.array([self.initial_state[0], self.initial_state[1], 0.0]) # x, y, z.  notice z is not part of state
 
+
         for i in range(0,self.numRays):
             ray = self.rays[:,i]
-            xnew, ynew = self.rotateByTheta(ray)
+            xnew, ynew = self.rotateByTheta(ray, 0.0)
             rayTransformed = np.array([xnew, ynew, 0.0])
             intersection = origin + (rayTransformed * raycasts[i])
             locations[i] = intersection
 
         return locations
 
-    def rotateByTheta(self,ray):
+    def rotateByTheta(self,ray,theta):
         xold = ray[0]
         yold = ray[1]
 
-        xnew = xold*np.cos(self.state[2]) - yold*np.sin(self.state[2])
-        ynew = xold*np.sin(self.state[2]) + yold*np.cos(self.state[2])
+        xnew = xold*np.cos(theta) - yold*np.sin(theta)
+        ynew = xold*np.sin(theta) + yold*np.cos(theta)
 
         return xnew, ynew
 
@@ -209,7 +219,7 @@ class YTapeGenerator(object):
     def raycastAllManual(self, state):
         distances = np.zeros(self.numRays)
 
-        origin = np.array([state[0], state[1], 0.0)
+        origin = np.array([state[0], state[1], 0.0])
         
         # iterate through each laser
 
@@ -218,7 +228,8 @@ class YTapeGenerator(object):
             # transform the ray and find the max range location
 
             ray = self.rays[:,i]
-            xnew, ynew = self.rotateByTheta(ray)
+            theta = state[2]
+            xnew, ynew = self.rotateByTheta(ray, theta)
             rayTransformed = np.array([xnew, ynew, 0.0])
 
             maxRangeLocation = origin + rayTransformed*self.rayLength
@@ -257,4 +268,21 @@ initial_distances[17] = 15.0
 print "Using for my initial_distances, the one input into this function:"
 print initial_distances
 
-my_generator.GenerateYTape(initial_distances)
+YTape = my_generator.GenerateYTape(initial_distances)
+
+print np.shape(YTape), "is shape of YTape"
+print
+print
+print "YTape is:"
+print YTape
+
+
+
+
+import shelve
+filename = "YTape"
+filename = '../data/' + filename + ".out"
+my_shelf = shelve.open(filename,'n')
+
+my_shelf['raycastData'] = YTape
+my_shelf.close()

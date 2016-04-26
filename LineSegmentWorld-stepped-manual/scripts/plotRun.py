@@ -4,19 +4,9 @@ import shelve
 
 
 
-filename = "../data/latest.out"
-
+filename = "../data/YTape.out"
 my_shelf = shelve.open(filename)
-options = my_shelf['options']
-
-simulationData = my_shelf['simulationData']
-stateOverTime = np.array(my_shelf['stateOverTime'])
 raycastData = np.array( my_shelf['raycastData'])
-controlInputData = np.array(my_shelf['controlInputData'])
-numTimesteps = my_shelf['numTimesteps']
-idxDict = my_shelf['idxDict']
-counter = my_shelf['counter']
-
 my_shelf.close()
 
 
