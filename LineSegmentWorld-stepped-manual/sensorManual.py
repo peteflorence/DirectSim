@@ -41,16 +41,19 @@ class SensorObjManual(object):
         self.numLineSegmentEndpoints = np.shape(self.LineSegmentEndpoints)[0]
         print self.LineSegmentEndpoints
 
-    def LineIntersection(x1, y1, x2, y2, x3, y3, x4, y4):
+    def CastPointsToDouble(self, x1, y1, x2, y2, x3, y3, x4, y4):
+        return float(x1), float(y1), float(x2), float(y2), float(x3), float(y3), float(x4), float(y4)
+
+    def LineIntersection(self, x1, y1, x2, y2, x3, y3, x4, y4):
         if ((x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4)) == 0:
             print "These lines are parallel"
             return
-        x1, y1, x2, y2, x3, y3, x4, y4 = CastPointsToDouble(x1, y1, x2, y2, x3, y3, x4, y4)
+        x1, y1, x2, y2, x3, y3, x4, y4 = self.CastPointsToDouble(x1, y1, x2, y2, x3, y3, x4, y4)
         Px = ((x1*y2 - y1*x2)*(x3 - x4) - (x1 - x2)*(x3*y4 - y3*x4)) / ((x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4))
         Py = ((x1*y2 - y1*x2)*(y3 - y4) - (y1 - y2)*(x3*y4 - y3*x4)) / ((x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4))
         return [Px, Py]
 
-    def IntersectionIsOnSegments(x1, y1, x2, y2, x3, y3, x4, y4, Px, Py):
+    def IntersectionIsOnSegments(self, x1, y1, x2, y2, x3, y3, x4, y4, Px, Py):
         # Check if Px is in the right range for Line 1
         if ((x1 > Px) and (x2 > Px)) or ((x1 < Px) and (x2 < Px)):
             return False
@@ -69,20 +72,20 @@ class SensorObjManual(object):
         
         return True
 
-    def LineSegmentIntersection(x1, y1, x2, y2, x3, y3, x4, y4):
-        Point = LineSegmentIntersection(x1, y1, x2, y2, x3, y3, x4, y4)
+    def LineSegmentIntersection(self, x1, y1, x2, y2, x3, y3, x4, y4):
+        Point = self.LineIntersection(x1, y1, x2, y2, x3, y3, x4, y4)
         if Point is None:
             print "parallel lines, no intersection"
             return
             
-        if not IntersectionIsOnSegments(x1, y1, x2, y2, x3, y3, x4, y4, Point[0], Point[1]):
+        if not self.IntersectionIsOnSegments(x1, y1, x2, y2, x3, y3, x4, y4, Point[0], Point[1]):
             print "NOT on the line segments"
             return
 
         return Point
 
 
-    def IntersectionDistance(x1, y1, x2, y2, x3, y3, x4, y4):
+    def IntersectionDistance(self, x1, y1, x2, y2, x3, y3, x4, y4):
         
         # Line 1, the laser, is (x1, y1) , (x2, y2)
 
@@ -95,10 +98,11 @@ class SensorObjManual(object):
         # (x3, y3) is left side of line segment
         # (x4, y4) is right side of line segment
 
-        Point = LineSegmentIntersection(x1, y1, x2, y2, x3, y3, x4, y4):
+        Point = self.LineSegmentIntersection(x1, y1, x2, y2, x3, y3, x4, y4)
 
         if Point is None:
-            return "NO INTERSECTION"
+            print "NO INTERSECTION"
+            return
 
         # return length of intersecting laser
 
@@ -107,23 +111,23 @@ class SensorObjManual(object):
         return Length
 
 
-
-
-
     def raycastAllManual(self,frame):
         distances = np.zeros(self.numRays)
 
         origin = np.array(frame.transform.GetPosition())
         
+        # iterate through each laser
+
         for i in range(self.numRays):
 
             # transform the ray and find the max range location
 
+            ray = self.rays[:,i]
             rayTransformed = np.array(frame.transform.TransformNormal(ray))
             maxRangeLocation = origin + rayTransformed*self.rayLength
 
 
-            # initialize a vector of all of the intersections
+            # initialize a vector of all of the possible intersections
 
             laserWithEachWorldSegment = np.zeros((self.numLineSegmentEndpoints-1))
             
@@ -132,9 +136,9 @@ class SensorObjManual(object):
 
             for j in range(self.numLineSegmentEndpoints-1):
 
-                 length = IntersectionDistance(origin[0], origin[1], maxRangeLocation[0], maxRangeLocation[1], self.LineSegmentEndpoints[j,0], self.LineSegmentEndpoints[j,1], self.LineSegmentEndpoints[j+1,0], self.LineSegmentEndpoints[j+1,1])
+                 length = self.IntersectionDistance(origin[0], origin[1], maxRangeLocation[0], maxRangeLocation[1], self.LineSegmentEndpoints[j,0], self.LineSegmentEndpoints[j,1], self.LineSegmentEndpoints[j+1,0], self.LineSegmentEndpoints[j+1,1])
                  if length is None:
-                    length = self.RayLength
+                    length = self.rayLength
                  laserWithEachWorldSegment[j] = length
 
 

@@ -491,6 +491,9 @@ class Simulator(object):
 
         self.frame.connectFrameModified(self.updateDrawIntersection)
         self.updateDrawIntersection(self.frame)
+
+        self.frame.connectFrameModified(self.updateDrawIntersectionManual)
+        self.updateDrawIntersectionManual(self.frame)
         
         applogic.resetCamera(viewDirection=[0.2,0,-1])
         self.view.showMaximized()
@@ -559,6 +562,22 @@ class Simulator(object):
         #camera = self.view.camera()
         #camera.SetFocalPoint(frame.transform.GetPosition())
         #camera.SetPosition(frame.transform.TransformPoint((-30,0,10)))
+
+    def updateDrawIntersectionManual(self, frame):
+        print "I am getting called too"
+        d = DebugData()
+        originHigher = np.array(frame.transform.GetPosition())
+        originHigher[2] = 1.0
+
+        sliderIdx = self.slider.value
+
+        for i in xrange(self.Sensor.numRays):
+            ray = self.Sensor.rays[:,i]
+            rayTransformed = np.array(frame.transform.TransformNormal(ray))
+            distance = self.raycastDataManual[sliderIdx,i]
+            d.addLine(originHigher, originHigher+rayTransformed*distance, color=[0,1,1])
+
+        vis.updatePolyData(d.getPolyData(), 'raysManual', colorByName='RGB255')
 
 
     def getControllerTypeFromCounter(self, counter):
