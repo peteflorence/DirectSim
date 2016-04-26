@@ -652,6 +652,7 @@ class Simulator(object):
 
     def onRunSimButton(self):
         self.runBatchSimulation()
+        self.saveToFile("latest")
         
     def onPlayButton(self):
 
