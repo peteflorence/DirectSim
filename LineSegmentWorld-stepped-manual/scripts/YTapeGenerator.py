@@ -50,7 +50,7 @@ class YTapeGenerator(object):
             # set laser_distances by raycasting lasers from new state against the line segment world
             laser_distances = self.raycastAllManual(state)
             YTape[1+step,:] = laser_distances
-            print step+1
+            #print step+1
 
         return YTape
 
@@ -99,10 +99,10 @@ class YTapeGenerator(object):
         self.LineSegmentEndpoints[-1,:] = [firstX, firstY, firstZ]
 
         self.numLineSegmentEndpoints = np.shape(self.LineSegmentEndpoints)[0]
-        print "####################"
-        print "LineSegmentEndpoints"
-        print self.LineSegmentEndpoints
-        print "####################"
+        #print "####################"
+        #print "LineSegmentEndpoints"
+        #print self.LineSegmentEndpoints
+        #print "####################"
 
 
     def ComputeControlInput(self, laser_distances):
@@ -180,11 +180,11 @@ class YTapeGenerator(object):
     def LineSegmentIntersection(self, x1, y1, x2, y2, x3, y3, x4, y4):
         Point = self.LineIntersection(x1, y1, x2, y2, x3, y3, x4, y4)
         if Point is None:
-            print "parallel lines, no intersection"
+            #print "parallel lines, no intersection"
             return
             
         if not self.IntersectionIsOnSegments(x1, y1, x2, y2, x3, y3, x4, y4, Point[0], Point[1]):
-            print "NOT on the line segments"
+            #print "NOT on the line segments"
             return
 
         return Point
@@ -206,7 +206,7 @@ class YTapeGenerator(object):
         Point = self.LineSegmentIntersection(x1, y1, x2, y2, x3, y3, x4, y4)
 
         if Point is None:
-            print "NO INTERSECTION"
+            #print "NO INTERSECTION"
             return
 
         # return length of intersecting laser
@@ -265,16 +265,22 @@ initial_distances = np.ones((21)) * 20.0
 initial_distances[5] = 13.0
 initial_distances[6] = 8.0
 initial_distances[17] = 15.0
-print "Using for my initial_distances, the one input into this function:"
-print initial_distances
+#print "Using for my initial_distances, the one input into this function:"
+#print initial_distances
+
+
+import time
+start = time.time()
 
 YTape = my_generator.GenerateYTape(initial_distances)
 
-print np.shape(YTape), "is shape of YTape"
-print
-print
-print "YTape is:"
-print YTape
+end = time.time()
+print(end - start), "is how long it took in seconds"
+# print np.shape(YTape), "is shape of YTape"
+# print
+# print
+# print "YTape is:"
+# print YTape
 
 
 
