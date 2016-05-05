@@ -121,7 +121,7 @@ class YTapeGenerator(object):
         numRight = np.sum(inverseRightHalf)
 
         if numLeft == numRight:
-            u = 0
+            u = -self.u_max
         elif numLeft > numRight:
             u = -self.u_max
         else:
