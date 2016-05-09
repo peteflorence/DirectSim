@@ -167,6 +167,61 @@ class World(object):
 
 
     @staticmethod
+    def buildGlobalGoal():
+        #print "building circle world"
+
+
+        d = DebugData()
+        worldXmin = 25
+        worldXmax = 50
+        worldYmin = -20
+        worldYmax = 20
+
+        firstX = worldXmin + np.random.rand()*(worldXmax-worldXmin)
+        firstY = worldYmin + np.random.rand()*(worldYmax-worldYmin)
+       
+        firstEndpt = (firstX,firstY,0.2)
+        secondEndpt = (firstX,firstY,-0.2)
+
+        #d.addLine(firstEndpt, secondEndpt, radius=2*np.random.randn())
+        d.addLine(firstEndpt, secondEndpt, radius=0.3, color=[0.5,1,0])
+
+        obj = vis.updatePolyData(d.getPolyData(), 'global_goal', colorByName='RGB255')
+
+
+        world = World()
+        world.visObj = obj
+        world.global_goal_x = firstX
+        world.global_goal_y = firstY
+
+        return world
+
+    @staticmethod
+    def placeLocalGoal(location):
+        #print "building circle world"
+
+        d = DebugData()
+
+        firstX = location[0]
+        firstY = location[1]
+       
+        firstEndpt = (firstX,firstY,0.2)
+        secondEndpt = (firstX,firstY,-0.2)
+
+        #d.addLine(firstEndpt, secondEndpt, radius=2*np.random.randn())
+        d.addLine(firstEndpt, secondEndpt, radius=0.3, color=[0.5,1,0])
+
+        obj = vis.updatePolyData(d.getPolyData(), 'local_goal', colorByName='RGB255')
+
+        world = World()
+        world.visObj = obj
+        world.local_goal_x = firstX
+        world.local_goal_y = firstY
+
+        return world
+
+
+    @staticmethod
     def buildStickWorld(percentObsDensity):
         print "building stick world"
 

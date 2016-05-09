@@ -409,21 +409,37 @@ class Simulator(object):
         panel = QtGui.QWidget()
         l = QtGui.QHBoxLayout(panel)
 
-        showSensorsButton = QtGui.QPushButton('Initialize Sensors Randomly')
-        showSensorsButton.connect('clicked()', self.onShowSensorsButton)
-        l.addWidget(showSensorsButton)
+        self.max_velocity = 20.0
+
+        sliderXVelocity = QtGui.QSlider(QtCore.Qt.Horizontal)
+        sliderXVelocity.connect('valueChanged(int)', self.onXVelocityChanged)
+        sliderXVelocity.setMaximum(self.max_velocity)
+        l.addWidget(sliderXVelocity)
+
+        sliderYVelocity = QtGui.QSlider(QtCore.Qt.Horizontal)
+        sliderYVelocity.connect('valueChanged(int)', self.onYVelocityChanged)
+        sliderYVelocity.setMaximum(self.max_velocity)
+        l.addWidget(sliderYVelocity)
 
         firstRaycast = np.ones((21,1))*10.0 + np.random.randn(21,1)*1.0
         print "firstRaycast initially is ", firstRaycast
         self.drawFirstIntersections(self.frame, firstRaycast)
 
+        randomGlobalGoalButton = QtGui.QPushButton('Initialize Random Global Goal')
+        randomGlobalGoalButton.connect('clicked()', self.onRandomGlobalGoalButton)
+        l.addWidget(randomGlobalGoalButton)
+
         randomObstaclesButton = QtGui.QPushButton('Initialize Random Obstacles')
         randomObstaclesButton.connect('clicked()', self.onRandomObstaclesButton)
         l.addWidget(randomObstaclesButton)
 
-        buildWorldFromRandomObstaclesButton = QtGui.QPushButton('World From Obstacles')
+        buildWorldFromRandomObstaclesButton = QtGui.QPushButton('Generate Polygon World')
         buildWorldFromRandomObstaclesButton.connect('clicked()', self.onBuildWorldFromRandomObstacles)
         l.addWidget(buildWorldFromRandomObstaclesButton)
+
+        findLocalGoalButton = QtGui.QPushButton('Find Local Goal (Heuristic)')
+        findLocalGoalButton.connect('clicked()', self.onFindLocalGoalButton)
+        l.addWidget(findLocalGoalButton)
 
 
         runSimButton = QtGui.QPushButton('Run simulation')
@@ -439,13 +455,7 @@ class Simulator(object):
         slider.setMaximum(self.sliderMax)
         self.slider = slider
 
-        # slider2 = QtGui.QSlider(QtCore.Qt.Horizontal)
-        # slider2.setMaximum(self.sliderMax)
-        # l.addWidget(slider2)
-
-        # slider3 = QtGui.QSlider(QtCore.Qt.Horizontal)
-        # slider3.setMaximum(self.sliderMax)
-        # l.addWidget(slider3)
+        
 
         # slider4 = QtGui.QSlider(QtCore.Qt.Horizontal)
         # slider4.setMaximum(self.sliderMax)
@@ -622,6 +632,12 @@ class Simulator(object):
         self.setRobotFrameState(x,y,0)
         self.sliderMovedByPlayTimer = False
 
+    def onXVelocityChanged(self, value):
+        print "x velocity changed"
+
+    def onYVelocityChanged(self, value):
+        print "y velocity changed"
+
     def onShowSensorsButton(self):
         print "I pressed the show sensors button"
         self.setInitialStateAtZero()
@@ -643,15 +659,69 @@ class Simulator(object):
         self.Sensor.setLocator(self.locator)
         self.updateDrawIntersection(self.frame, locator=self.locator)
 
+    def onRandomGlobalGoalButton(self):
+        print "random global goal button pressed"
+        self.globalGoal = World.buildGlobalGoal()
+        
 
     def onBuildWorldFromRandomObstacles(self):
         distances = self.Sensor.raycastAll(self.frame)
         firstRaycastLocations = self.Sensor.invertRaycastsToLocations(self.frame, distances)
+
+        self.polygon_initial_distances = distances
+        self.polygon_initial_raycastLocations = firstRaycastLocations
+
         self.LineSegmentWorld = World.buildLineSegmentWorld(firstRaycastLocations)
         self.LineSegmentLocator = World.buildCellLocator(self.LineSegmentWorld.visObj.polyData)
         self.locator = self.LineSegmentLocator
         self.Sensor.setLocator(self.LineSegmentLocator)
         self.updateDrawIntersection(self.frame)
+
+
+    def onFindLocalGoalButton(self):
+        print "find local goal button pressed"
+
+        local_goal = self.findLocalGoal()
+        print local_goal, "is my local goal"
+
+        self.localGoal = World.placeLocalGoal(local_goal)
+
+    def findLocalGoal(self):
+        biggest_gap_width = 0
+        biggest_gap_start_index = 0
+
+        current_gap_width = 0
+        current_gap_start_index = 0
+
+        for index, value in enumerate(self.polygon_initial_distances):
+            
+            print index
+        
+            # if still in a gap
+            if value == self.Sensor.rayLength:
+                current_gap_width += 1
+
+            # else terminate counting for this gap
+            else:
+                if current_gap_width > biggest_gap_width:
+                    biggest_gap_width = current_gap_width
+                    biggest_gap_start_index = current_gap_start_index
+
+                current_gap_width = 0
+                current_gap_start_index = index+1
+
+        if current_gap_width > biggest_gap_width:
+            biggest_gap_width = current_gap_width
+            biggest_gap_start_index = current_gap_start_index
+
+
+        print "biggest_gap_start_index", biggest_gap_start_index
+        print "biggest_gap_width", biggest_gap_width
+
+        middle_index_of_gap =  biggest_gap_start_index + biggest_gap_width/2
+
+        return self.polygon_initial_raycastLocations[middle_index_of_gap,:] 
+
 
 
     def onRunSimButton(self):
