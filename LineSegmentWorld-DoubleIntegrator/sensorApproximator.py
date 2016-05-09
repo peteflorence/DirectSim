@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.optimize as opt
 from linear_regression import LinearRegression
+import cvxopt
 import math
 from director.debugVis import DebugData
 import director.visualization as vis
