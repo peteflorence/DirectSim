@@ -225,16 +225,16 @@ class Simulator(object):
                                                                             raycastDistance=currentRaycast,
                                                                             randomize=False)
 
-            print controlInput, "is control input"
             self.controlInputData[idx] = controlInput
 
             nextCarState = self.Car.simulateOneStep(controlInput=controlInput, dt=self.dt)
+            print "NEXTCARSTATE is ", nextCarState
 
         
             x = nextCarState[0]
             y = nextCarState[1]
-            theta = nextCarState[2]
-            self.setRobotFrameState(x,y,theta)
+            
+            self.setRobotFrameState(x,y,0.0)
             nextRaycast = self.Sensor.raycastAll(self.frame)
 
 
@@ -320,6 +320,7 @@ class Simulator(object):
         self.raycastData = self.raycastData[0:self.counter+1, :]
         self.controlInputData = self.controlInputData[0:self.counter+1]
         self.endTime = 1.0*self.counter/self.numTimesteps*self.endTime
+
 
 
 
@@ -516,6 +517,7 @@ class Simulator(object):
 
         self.LineSegmentWorld = World.buildLineSegmentWorld(firstRaycastLocations)
         self.LineSegmentLocator = World.buildCellLocator(self.LineSegmentWorld.visObj.polyData)
+        self.locator = self.LineSegmentLocator
         self.Sensor.setLocator(self.LineSegmentLocator)
 
         
@@ -523,7 +525,7 @@ class Simulator(object):
 
     def updateDrawIntersection(self, frame, locator="None"):
         if locator=="None":
-            locator = self.LineSegmentLocator
+            locator = self.locator
 
         origin = np.array(frame.transform.GetPosition())
         #print "origin is now at", origin
@@ -647,6 +649,7 @@ class Simulator(object):
         firstRaycastLocations = self.Sensor.invertRaycastsToLocations(self.frame, distances)
         self.LineSegmentWorld = World.buildLineSegmentWorld(firstRaycastLocations)
         self.LineSegmentLocator = World.buildCellLocator(self.LineSegmentWorld.visObj.polyData)
+        self.locator = self.LineSegmentLocator
         self.Sensor.setLocator(self.LineSegmentLocator)
         self.updateDrawIntersection(self.frame)
 
