@@ -20,13 +20,33 @@ class ActionSetObj(object):
 
         self.t_f = 0.500 # 500 ms simulate forward time
 
+        self.numPointsToDraw = 10
+        self.t_vector = np.linspace(0,self.t_f,self.numPointsToDraw)
+        self.t_vector_squared = 1.0*self.t_vector
+        for index, value in enumerate(self.t_vector_squared):
+            print value
+            self.t_vector_squared[index] = value**2
+            print index
+
+        print self.t_vector, "is t_vector"
+        print self.t_vector_squared, "is t_vector_squared"
+
 
     def computeFinalPositions(self, v_x_initial, v_y_initial):
         self.p_x_final = 1.0/2.0 * self.a_x * self.t_f**2 + np.ones(self.num_x_bins) * v_x_initial *self.t_f
         self.p_y_final = 1.0/2.0 * self.a_y * self.t_f**2 + np.ones(self.num_y_bins) * v_y_initial *self.t_f
 
 
-    def drawActionSet(self):
+    def computeAllPositions(self, v_x_initial, v_y_initial):
+
+        self.p_x_trajectories = 1.0/2.0 * np.outer(self.a_x, self.t_vector_squared) + np.outer(np.ones(self.num_x_bins) * v_x_initial, self.t_vector)
+        self.p_y_trajectories = 1.0/2.0 * np.outer(self.a_y, self.t_vector_squared) + np.outer(np.ones(self.num_y_bins) * v_y_initial, self.t_vector)
+
+        print np.shape(self.p_x_trajectories)
+        print np.shape(self.p_y_trajectories)
+
+
+    def drawActionSetFinal(self):
         #print "I am drawing the action set"
 
         d = DebugData()
@@ -38,6 +58,30 @@ class ActionSetObj(object):
                 secondEndpt = (x_value,y_value,0.0)
 
                 d.addLine(firstEndpt, secondEndpt, radius=0.02, color=[0.8,0,0.8])
+
+
+        obj = vis.updatePolyData(d.getPolyData(), 'action_set', colorByName='RGB255')
+
+    def drawActionSetFull(self):
+        #print "I am drawing the action set"
+
+        d = DebugData()
+
+        for x_index, x_value in enumerate(self.a_x):
+            for y_index, y_value in enumerate(self.a_y):
+
+                for time_step_index in xrange(self.numPointsToDraw-1):
+        
+                    firstX = self.p_x_trajectories[x_index, time_step_index]
+                    firstY = self.p_y_trajectories[y_index, time_step_index]
+
+                    secondX = self.p_x_trajectories[x_index, time_step_index+1]
+                    secondY = self.p_y_trajectories[y_index, time_step_index+1]
+
+                    firstEndpt = (firstX,firstY,0.0)
+                    secondEndpt = (secondX,secondY,0.0)
+
+                    d.addLine(firstEndpt, secondEndpt, radius=0.02, color=[0.8,0,0.8])
 
 
         obj = vis.updatePolyData(d.getPolyData(), 'action_set', colorByName='RGB255')

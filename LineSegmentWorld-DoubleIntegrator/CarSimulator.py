@@ -738,8 +738,10 @@ class Simulator(object):
 
     def onDrawActionSetButton(self):
         print "drawing action set"
-        self.ActionSet.computeFinalPositions(self.XVelocity_drawing,self.YVelocity_drawing)
-        self.ActionSet.drawActionSet()
+        #self.ActionSet.computeFinalPositions(self.XVelocity_drawing,self.YVelocity_drawing)
+        self.ActionSet.computeAllPositions(self.XVelocity_drawing,self.YVelocity_drawing)
+        #self.ActionSet.drawActionSetFinal()
+        self.ActionSet.drawActionSetFull()
 
     def onRunSimButton(self):
         self.runBatchSimulation()
