@@ -431,7 +431,6 @@ class Simulator(object):
         l.addWidget(sliderYVelocity)
 
         firstRaycast = np.ones((self.Sensor.numRays,1))*10.0 + np.random.randn(self.Sensor.numRays,1)*1.0
-        print "firstRaycast initially is ", firstRaycast
         self.drawFirstIntersections(self.frame, firstRaycast)
 
         randomGlobalGoalButton = QtGui.QPushButton('Initialize Random Global Goal')
@@ -441,6 +440,8 @@ class Simulator(object):
         randomObstaclesButton = QtGui.QPushButton('Initialize Random Obstacles')
         randomObstaclesButton.connect('clicked()', self.onRandomObstaclesButton)
         l.addWidget(randomObstaclesButton)
+
+
 
         buildWorldFromRandomObstaclesButton = QtGui.QPushButton('Generate Polygon World')
         buildWorldFromRandomObstaclesButton.connect('clicked()', self.onBuildWorldFromRandomObstacles)
@@ -519,6 +520,7 @@ class Simulator(object):
         print "Total run time", elapsed
         print "Ticks (Hz)", simRate
         print "Number of steps taken", self.counter
+        self.onRandomObstaclesButton()
         self.app.start()
 
     def drawFirstIntersections(self, frame, firstRaycast):
@@ -661,7 +663,6 @@ class Simulator(object):
         print "I pressed the show sensors button"
         self.setInitialStateAtZero()
         firstRaycast = np.ones((self.Sensor.numRays,1))*10.0 + np.random.randn(self.Sensor.numRays,1)*1.0
-        print "firstRaycast is ", firstRaycast
         self.drawFirstIntersections(self.frame, firstRaycast)
 
     def onRandomObstaclesButton(self):

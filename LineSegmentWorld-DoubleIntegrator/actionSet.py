@@ -24,12 +24,7 @@ class ActionSetObj(object):
         self.t_vector = np.linspace(0,self.t_f,self.numPointsToDraw)
         self.t_vector_squared = 1.0*self.t_vector
         for index, value in enumerate(self.t_vector_squared):
-            print value
             self.t_vector_squared[index] = value**2
-            print index
-
-        print self.t_vector, "is t_vector"
-        print self.t_vector_squared, "is t_vector_squared"
 
 
     def computeFinalPositions(self, v_x_initial, v_y_initial):
@@ -38,13 +33,8 @@ class ActionSetObj(object):
 
 
     def computeAllPositions(self, v_x_initial, v_y_initial):
-
         self.p_x_trajectories = 1.0/2.0 * np.outer(self.a_x, self.t_vector_squared) + np.outer(np.ones(self.num_x_bins) * v_x_initial, self.t_vector)
         self.p_y_trajectories = 1.0/2.0 * np.outer(self.a_y, self.t_vector_squared) + np.outer(np.ones(self.num_y_bins) * v_y_initial, self.t_vector)
-
-        print np.shape(self.p_x_trajectories)
-        print np.shape(self.p_y_trajectories)
-
 
     def drawActionSetFinal(self):
         #print "I am drawing the action set"

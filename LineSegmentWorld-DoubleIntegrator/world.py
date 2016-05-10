@@ -62,7 +62,7 @@ class World(object):
 
         d = DebugData()
 
-        firstX = -0.4
+        firstX = -0.1
         firstY = 0.0
 
         secondX = firstRaycastLocations[0,0]
@@ -71,7 +71,7 @@ class World(object):
         firstEndpt = (firstX,firstY,0.0)
         secondEndpt = (secondX,secondY,0.0)
 
-        d.addLine(firstEndpt, secondEndpt, radius=0.1)
+        d.addLine(firstEndpt, secondEndpt, radius=0.05)
         
         for i in range(0,len(firstRaycastLocations[:,0])-1):
             print "firstRaycastLocations", i
@@ -85,18 +85,18 @@ class World(object):
             firstEndpt = (firstX,firstY,0.0)
             secondEndpt = (secondX,secondY,0.0)
 
-            d.addLine(firstEndpt, secondEndpt, radius=0.1)
+            d.addLine(firstEndpt, secondEndpt, radius=0.05)
 
         firstX = firstRaycastLocations[len(firstRaycastLocations)-1,0]
         firstY = firstRaycastLocations[len(firstRaycastLocations)-1,1]
 
-        secondX = -0.4
+        secondX = -0.1
         secondY = 0.0
             
         firstEndpt = (firstX,firstY,0.0)
         secondEndpt = (secondX,secondY,0.0)
 
-        d.addLine(firstEndpt, secondEndpt, radius=0.1)
+        d.addLine(firstEndpt, secondEndpt, radius=0.05)
 
 
         obj = vis.updatePolyData(d.getPolyData(), 'world')
@@ -116,15 +116,15 @@ class World(object):
             np.random.seed(randomSeed)
 
         d = DebugData()
-        worldXmin = 5
-        worldXmax = 25
-        worldYmin = -20
-        worldYmax = 20
+        worldXmin = 3
+        worldXmax = 15
+        worldYmin = -10
+        worldYmax = 10
         #print "boundaries done"
 
         worldArea = (worldXmax-worldXmin)*(worldYmax-worldYmin)
         #print worldArea
-        obsScalingFactor = 1.0/12.0
+        obsScalingFactor = 5.0/12.0
         maxNumObstacles = obsScalingFactor * worldArea
         
         numObstacles = int(obstaclesInnerFraction**2 * percentObsDensity/100.0 * maxNumObstacles)
@@ -149,7 +149,7 @@ class World(object):
             secondEndpt = (firstX,firstY,-0.2)
 
             #d.addLine(firstEndpt, secondEndpt, radius=2*np.random.randn())
-            d.addLine(firstEndpt, secondEndpt, radius=1.0)
+            d.addLine(firstEndpt, secondEndpt, radius=0.5)
 
 
         obj = vis.updatePolyData(d.getPolyData(), 'world')
@@ -468,7 +468,7 @@ class World(object):
         #print "building robot"
         polyData = ioUtils.readPolyData('crazyflie.obj')
         
-        scale = 0.01
+        scale = 0.005
         t = vtk.vtkTransform()
         t.RotateX(90)
         t.Scale(scale, scale, scale)
