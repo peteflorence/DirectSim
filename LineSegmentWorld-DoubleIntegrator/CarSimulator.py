@@ -23,6 +23,7 @@ from car import CarPlant
 from sensor import SensorObj
 from sensorApproximator import SensorApproximatorObj
 from controller import ControllerObj
+from actionSet import ActionSetObj
 
 
 
@@ -141,6 +142,8 @@ class Simulator(object):
                             velocity=self.options['Car']['velocity'])
 
         self.Controller.initializeVelocity(self.Car.v)
+
+        self.ActionSet = ActionSetObj()
 
 
 
@@ -441,8 +444,11 @@ class Simulator(object):
         findLocalGoalButton.connect('clicked()', self.onFindLocalGoalButton)
         l.addWidget(findLocalGoalButton)
 
+        drawActionSetButton = QtGui.QPushButton('Draw Action Set')
+        drawActionSetButton.connect('clicked()', self.onDrawActionSetButton)
+        l.addWidget(drawActionSetButton)
 
-        runSimButton = QtGui.QPushButton('Run simulation')
+        runSimButton = QtGui.QPushButton('Simulate')
         runSimButton.connect('clicked()', self.onRunSimButton)
         l.addWidget(runSimButton)
 
@@ -722,7 +728,9 @@ class Simulator(object):
 
         return self.polygon_initial_raycastLocations[middle_index_of_gap,:] 
 
-
+    def onDrawActionSetButton(self):
+        print "drawing action set"
+        self.ActionSet.drawActionSet()
 
     def onRunSimButton(self):
         self.runBatchSimulation()
