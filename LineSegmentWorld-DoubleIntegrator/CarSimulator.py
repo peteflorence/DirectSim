@@ -54,6 +54,9 @@ class Simulator(object):
         if autoInitialize:
             self.initialize()
 
+        self.XVelocity_drawing = 0.0
+        self.YVelocity_drawing = 0.0
+
     def initializeOptions(self):
         self.options = dict()
 
@@ -417,11 +420,14 @@ class Simulator(object):
         sliderXVelocity = QtGui.QSlider(QtCore.Qt.Horizontal)
         sliderXVelocity.connect('valueChanged(int)', self.onXVelocityChanged)
         sliderXVelocity.setMaximum(self.max_velocity)
+        sliderXVelocity.setMinimum(-self.max_velocity)
+
         l.addWidget(sliderXVelocity)
 
         sliderYVelocity = QtGui.QSlider(QtCore.Qt.Horizontal)
         sliderYVelocity.connect('valueChanged(int)', self.onYVelocityChanged)
         sliderYVelocity.setMaximum(self.max_velocity)
+        sliderYVelocity.setMinimum(-self.max_velocity)
         l.addWidget(sliderYVelocity)
 
         firstRaycast = np.ones((21,1))*10.0 + np.random.randn(21,1)*1.0
@@ -639,9 +645,17 @@ class Simulator(object):
         self.sliderMovedByPlayTimer = False
 
     def onXVelocityChanged(self, value):
+        print value
+
+        self.XVelocity_drawing = value
+        self.onDrawActionSetButton()
         print "x velocity changed"
 
     def onYVelocityChanged(self, value):
+        print value
+
+        self.YVelocity_drawing = -value
+        self.onDrawActionSetButton()
         print "y velocity changed"
 
     def onShowSensorsButton(self):
@@ -730,6 +744,7 @@ class Simulator(object):
 
     def onDrawActionSetButton(self):
         print "drawing action set"
+        self.ActionSet.computeFinalPositions(self.XVelocity_drawing,self.YVelocity_drawing)
         self.ActionSet.drawActionSet()
 
     def onRunSimButton(self):
