@@ -205,22 +205,24 @@ class Simulator(object):
         for i in range(len(x_trajectory_to_check)):
             point = ( x_trajectory_to_check[i], y_trajectory_to_check[i]  )
             if not self.CheckIfCollisionFreePoint(point):
+                print "trajectory wasn't free"
                 return False 
+
 
         return True
 
     def CheckIfCollisionFreePoint(self, point):
         for circle_center in self.world.list_of_circles:
-            if (circle_center[0] - point[0])**2 + (circle_center[1] -point[1]**2) < self.circleRadius**2:
+            if (circle_center[0] - point[0])**2 + (circle_center[1]-point[1])**2 < self.circleRadius**2:
                 return False
 
-        if point[0] > worldXmax:
+        if point[0] > self.world.Xmax:
             return False
-        if point[0] < worldXmin:
+        if point[0] < self.world.Xmin:
             return False
-        if point[1] > worldYmax:
+        if point[1] > self.world.Ymax:
             return False    
-        if point[1] < worldYmin:
+        if point[1] < self.world.Ymin:
             return False
 
         return True
@@ -281,9 +283,6 @@ class Simulator(object):
 
             x_accel = self.ActionSet.a_x[x_index_to_use]
             y_accel = self.ActionSet.a_y[y_index_to_use]
-
-            print x_accel
-            print y_accel
 
             controlInput = [x_accel, -y_accel]
 
@@ -550,7 +549,6 @@ class Simulator(object):
         origin = np.array(frame.transform.GetPosition())
 
         if not self.running_sim:
-            print "shape of currentIdx is ", self.currentIdx
             self.ActionSet.computeAllPositions(self.stateOverTime[self.currentIdx,0], self.stateOverTime[self.currentIdx,1], self.stateOverTime[self.currentIdx,2],self.stateOverTime[self.currentIdx,3])
             #self.ActionSet.drawActionSetFinal()
             self.ActionSet.drawActionSetFull()
