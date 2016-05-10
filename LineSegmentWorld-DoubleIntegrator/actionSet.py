@@ -10,7 +10,7 @@ from director.debugVis import DebugData
 class ActionSetObj(object):
 
     def __init__(self):
-        self.a_max = 10
+        self.a_max = 15 # this is approximately for a 70 degree pitch angle
 
         self.num_x_bins = 5
         self.a_x = np.linspace(-self.a_max, self.a_max, self.num_x_bins)
@@ -27,14 +27,12 @@ class ActionSetObj(object):
 
 
     def drawActionSet(self):
-        print "I am drawing the action set"
+        #print "I am drawing the action set"
 
         d = DebugData()
 
         for x_index, x_value in enumerate(self.p_x_final):
             for y_index, y_value in enumerate(self.p_y_final):
-
-                print x_value, y_value
         
                 firstEndpt = (0.0,0.0,0.0)
                 secondEndpt = (x_value,y_value,0.0)

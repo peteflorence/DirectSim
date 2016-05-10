@@ -69,8 +69,8 @@ class Simulator(object):
         self.options['World']['scale'] = 1
 
         self.options['Sensor'] = dict()
-        self.options['Sensor']['rayLength'] = 20
-        self.options['Sensor']['numRays'] = 21
+        self.options['Sensor']['rayLength'] = 10
+        self.options['Sensor']['numRays'] = 50
 
 
         self.options['Car'] = dict()
@@ -97,8 +97,8 @@ class Simulator(object):
 
 
         defaultOptions['Sensor'] = dict()
-        defaultOptions['Sensor']['rayLength'] = 20
-        defaultOptions['Sensor']['numRays'] = 41
+        defaultOptions['Sensor']['rayLength'] = 10
+        defaultOptions['Sensor']['numRays'] = 51
 
 
         defaultOptions['Car'] = dict()
@@ -430,7 +430,7 @@ class Simulator(object):
         sliderYVelocity.setMinimum(-self.max_velocity)
         l.addWidget(sliderYVelocity)
 
-        firstRaycast = np.ones((21,1))*10.0 + np.random.randn(21,1)*1.0
+        firstRaycast = np.ones((self.Sensor.numRays,1))*10.0 + np.random.randn(self.Sensor.numRays,1)*1.0
         print "firstRaycast initially is ", firstRaycast
         self.drawFirstIntersections(self.frame, firstRaycast)
 
@@ -530,7 +530,7 @@ class Simulator(object):
         for i in xrange(self.Sensor.numRays):
             endpoint = firstRaycastLocations[i,:]
 
-            if firstRaycast[i] == 20.0:
+            if firstRaycast[i] >= self.Sensor.rayLength - 0.1:
                 d.addLine(origin, endpoint, color=[0,1,0])
             else:
                 d.addLine(origin, endpoint, color=[1,0,0])
@@ -645,23 +645,22 @@ class Simulator(object):
         self.sliderMovedByPlayTimer = False
 
     def onXVelocityChanged(self, value):
-        print value
 
         self.XVelocity_drawing = value
         self.onDrawActionSetButton()
-        print "x velocity changed"
+        print "x velocity changed to ", value
 
     def onYVelocityChanged(self, value):
         print value
 
         self.YVelocity_drawing = -value
         self.onDrawActionSetButton()
-        print "y velocity changed"
+        print "y velocity changed to ", -value
 
     def onShowSensorsButton(self):
         print "I pressed the show sensors button"
         self.setInitialStateAtZero()
-        firstRaycast = np.ones((21,1))*10.0 + np.random.randn(21,1)*1.0
+        firstRaycast = np.ones((self.Sensor.numRays,1))*10.0 + np.random.randn(self.Sensor.numRays,1)*1.0
         print "firstRaycast is ", firstRaycast
         self.drawFirstIntersections(self.frame, firstRaycast)
 
@@ -715,7 +714,6 @@ class Simulator(object):
 
         for index, value in enumerate(self.polygon_initial_distances):
             
-            print index
         
             # if still in a gap
             if value == self.Sensor.rayLength:
@@ -733,10 +731,6 @@ class Simulator(object):
         if current_gap_width > biggest_gap_width:
             biggest_gap_width = current_gap_width
             biggest_gap_start_index = current_gap_start_index
-
-
-        print "biggest_gap_start_index", biggest_gap_start_index
-        print "biggest_gap_width", biggest_gap_width
 
         middle_index_of_gap =  biggest_gap_start_index + biggest_gap_width/2
 
