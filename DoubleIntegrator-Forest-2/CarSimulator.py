@@ -63,7 +63,7 @@ class Simulator(object):
         self.options['World'] = dict()
         self.options['World']['obstaclesInnerFraction'] = 0.98
         self.options['World']['randomSeed'] = 40
-        self.options['World']['percentObsDensity'] = 5.0
+        self.options['World']['percentObsDensity'] = 15.0
         self.options['World']['nonRandomWorld'] = True
         self.options['World']['circleRadius'] = 0.6
         self.circleRadius = self.options['World']['circleRadius']
@@ -200,29 +200,41 @@ class Simulator(object):
         x_trajectory_to_check = self.ActionSet.p_x_trajectories[traj_index[0]]
         y_trajectory_to_check = self.ActionSet.p_y_trajectories[traj_index[1]]
 
+
         #check if anything is too close to the center of the circles
         #print self.world.list_of_circles
         for i in range(len(x_trajectory_to_check)):
             point = ( x_trajectory_to_check[i], y_trajectory_to_check[i]  )
             if not self.CheckIfCollisionFreePoint(point):
-                print "trajectory wasn't free"
+                #print "trajectory wasn't free"
                 return False 
 
 
         return True
 
     def CheckIfCollisionFreePoint(self, point):
+
         for circle_center in self.world.list_of_circles:
-            if (circle_center[0] - point[0])**2 + (circle_center[1]-point[1])**2 < self.circleRadius**2:
+            #print "circle centers first"
+            #print circle_center[0], circle_center[1]
+            #print self.circleRadius
+            #print point[0], point[1]
+            #print (circle_center[0] - point[0])**2 + (circle_center[1]-point[1])**2
+            if  ( (circle_center[0] - point[0])**2 + (circle_center[1]-point[1])**2 < self.circleRadius**2):
+                #print "I found a point in a circle"
                 return False
 
         if point[0] > self.world.Xmax:
+            #print "I would have gone past top wall"
             return False
         if point[0] < self.world.Xmin:
+            #print "I would have gone below bottom wall"
             return False
         if point[1] > self.world.Ymax:
+            #print "I would have gone to the right of the side wall"
             return False    
         if point[1] < self.world.Ymin:
+            #print "I would have gone to the left of the side wall"
             return False
 
         return True
@@ -233,7 +245,9 @@ class Simulator(object):
     def runSingleSimulation(self, controllerType='default', simulationCutoff=None):
 
 
-        self.setRandomCollisionFreeInitialState()
+        self.Car.setCarState(0.0,0.0,self.initial_XVelocity,self.initial_YVelocity)
+        self.setRobotFrameState(0.0,0.0,0.0)
+
 
         currentCarState = np.copy(self.Car.state)
         nextCarState = np.copy(self.Car.state)
@@ -260,7 +274,7 @@ class Simulator(object):
                 raise ValueError("controller of type " + controllerType + " not supported")
 
             # compute all trajectories from action set
-            self.ActionSet.computeAllPositions(self.stateOverTime[self.currentIdx,0], self.stateOverTime[self.currentIdx,1], self.stateOverTime[self.currentIdx,2],self.stateOverTime[self.currentIdx,3])
+            self.ActionSet.computeAllPositions(currentCarState[0], currentCarState[1],currentCarState[2],currentCarState[3])
 
 
             sorted_ranks_with_indices = self.rankTrajectories()
@@ -284,7 +298,7 @@ class Simulator(object):
             x_accel = self.ActionSet.a_x[x_index_to_use]
             y_accel = self.ActionSet.a_y[y_index_to_use]
 
-            controlInput = [x_accel, -y_accel]
+            controlInput = [x_accel, y_accel]
 
 
             self.controlInputData[idx] = controlInput
@@ -426,6 +440,9 @@ class Simulator(object):
 
             if not self.checkInCollision():
                 break
+
+        self.firstRandomCollisionFreeInitialState_x = x
+        self.firstRandomCollisionFreeInitialState_y = y
 
         return x,y,0,0
 

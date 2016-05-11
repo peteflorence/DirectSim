@@ -10,7 +10,7 @@ from director.debugVis import DebugData
 class ActionSetObj(object):
 
     def __init__(self):
-        self.a_max = 5 # this is approximately for a 70 degree pitch angle
+        self.a_max = 15 # this is approximately for a 70 degree pitch angle
 
         self.num_x_bins = 5
         self.a_x = np.linspace(-self.a_max, self.a_max, self.num_x_bins)
