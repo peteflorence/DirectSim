@@ -763,9 +763,9 @@ class Simulator(object):
                     self.funnel_number_y = 0
 
         print "I pressed the draw funnels button"
-        variance_x = 0.5 + abs(self.XVelocity_drawing*0.1)
-        variance_y = 0.5 + abs(self.YVelocity_drawing*0.1)
-        variance_z = 0.5
+        variance_x = 1.5 + abs(self.XVelocity_drawing*0.1)
+        variance_y = 1.5 + abs(self.YVelocity_drawing*0.1)
+        variance_z = 0.2
 
         self.ActionSet.computeAllPositions(self.XVelocity_drawing,self.YVelocity_drawing)
         print np.shape(self.ActionSet.p_x_trajectories), "is my shape"
@@ -775,7 +775,7 @@ class Simulator(object):
             x_center = self.ActionSet.p_x_trajectories[self.funnel_number_x,i]
             y_center = self.ActionSet.p_y_trajectories[self.funnel_number_y,i]
             print x_center, y_center
-            World.buildEllipse(i, [x_center,y_center,0], variance_x, variance_y, variance_z, alpha=0.3)
+            World.buildEllipse(i, [x_center,y_center,0], variance_x*i/10.0*0.5, variance_y*i/10.0*0.5, variance_z, alpha=0.3)
 
 
        
