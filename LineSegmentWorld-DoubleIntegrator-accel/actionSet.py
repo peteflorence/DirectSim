@@ -11,48 +11,38 @@ from director.debugVis import DebugData
 class ActionSetObj(object):
 
     def __init__(self):
-        self.a_max = 9.8*2 # this is approximately for a 70 degree pitch angle
+        self.a_max = 9.8*2.4 # this is approximately for a 70 degree pitch angle
 
-        self.num_accel_thrust_bins = 3
-        self.accel_thrust = np.linspace(0.3*self.a_max, self.a_max, self.num_accel_thrust_bins)
-        
-        self.num_roll_bins = 5
-        self.roll = np.linspace(-np.pi*70.0/90.0, np.pi*70.0/90.0, self.num_roll_bins)
+        self.a_max_horizontal = math.sqrt(self.a_max**2 - 9.8**2)
 
-        self.num_pitch_bins = 5
-        self.pitch = np.linspace(-np.pi*70.0/90.0, np.pi*70.0/90.0, self.num_pitch_bins)
+        self.a_vector = np.zeros((57, 3))
 
-        self.action_vector = np.zeros((self.num_accel_thrust_bins*self.num_roll_bins*self.num_pitch_bins+1, 3))
-        self.action_vector[0,:] = [0,0,0]
-        index = 1
-        for i in self.accel_thrust:
-            for j in self.roll:
-                for k in self.pitch:
-                    self.action_vector[index,:] = [i,j,k]
-                    index=index+1
+        # first one is actually zeros
+        self.a_vector[0,:] = [0,0,0]
 
-        print "ACTION VECTOR", self.action_vector
+        # near horizontal max
+        for i in xrange(1,9):
+            theta = (i-1)*2*np.pi/8
+            self.a_vector[i,:] = [np.cos(theta)*self.a_max_horizontal, np.sin(theta)*self.a_max_horizontal, 0] 
 
-        self.a_vector = self.action_vector *0.0
+        #0.6*near horizontal max
+        for i in xrange(9, 17):
+            max_up = math.sqrt(self.a_max**2 - 0.6*self.a_max**2)-9.8
 
-        for index, value in enumerate(self.action_vector):
-            accel_thrust = value[0]
-            roll = value[1]
-            pitch = value[2]
+            theta = (i-9)*2*np.pi/8
+            self.a_vector[i,:] = [np.cos(theta)*self.a_max_horizontal*0.6, np.sin(theta)*self.a_max_horizontal*0.6, 0] 
+            self.a_vector[i+8,:] = [np.cos(theta)*self.a_max_horizontal*0.6, np.sin(theta)*self.a_max_horizontal*0.6, max_up] 
+            self.a_vector[i+16,:] = [np.cos(theta)*self.a_max_horizontal*0.6, np.sin(theta)*self.a_max_horizontal*0.6, -max_up] 
 
-            a_x = accel_thrust*math.sin(pitch)
-            a_y = accel_thrust*math.cos(pitch)*math.sin(roll)
-            a_z = accel_thrust*math.cos(pitch)*math.cos(roll)
-            self.a_vector[index,:] = [a_x, a_y, a_z]
+        #0.3*near horizontal max
+        for i in xrange(33, 41):
+            max_up = math.sqrt(self.a_max**2 - 0.3*self.a_max**2)-9.8
 
-        print "A VECTOR", self.a_vector
+            theta = (i-33)*2*np.pi/8
+            self.a_vector[i,:] = [np.cos(theta)*self.a_max_horizontal*0.6, np.sin(theta)*self.a_max_horizontal*0.6, 0] 
+            self.a_vector[i+8,:] = [np.cos(theta)*self.a_max_horizontal*0.6, np.sin(theta)*self.a_max_horizontal*0.6, max_up] 
+            self.a_vector[i+16,:] = [np.cos(theta)*self.a_max_horizontal*0.6, np.sin(theta)*self.a_max_horizontal*0.6, -max_up] 
 
-
-        self.num_x_bins = 5
-        self.a_x = np.linspace(-self.a_max, self.a_max, self.num_x_bins)
-
-        self.num_y_bins = 5
-        self.a_y = np.linspace(-self.a_max, self.a_max, self.num_y_bins)
 
         self.t_f = 0.500 # 500 ms simulate forward time
 
