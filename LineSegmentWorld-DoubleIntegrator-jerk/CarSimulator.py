@@ -488,6 +488,7 @@ class Simulator(object):
         randomObstaclesButton = QtGui.QPushButton('Initialize Random Obstacles')
         randomObstaclesButton.connect('clicked()', self.onRandomObstaclesButton)
         l.addWidget(randomObstaclesButton)
+        self.setInitialStateAtZero()
 
         
 
@@ -771,7 +772,7 @@ class Simulator(object):
 
     def onRandomObstaclesButton(self):
         print "random obstacles button pressed"
-        self.setInitialStateAtZero()
+        #self.setInitialStateAtZero()
         self.world = World.buildLineSegmentTestWorld(percentObsDensity=8.0,
                                             circleRadius=self.options['World']['circleRadius'],
                                             nonRandom=False,
@@ -883,16 +884,10 @@ class Simulator(object):
 
             number = 0
             for index, value in enumerate(self.ActionSet.overall_t_vector):
-                print next_time, "is my current next_time"
-                print value, "is the time I'm considering"
-                print number, "is my number"
                 if value > next_time:
                     indices_to_draw[number] = index
                     number = number + 1
                     next_time = next_time + self.ActionSet.t_f/10.0
-
-            print indices_to_draw, "is indices+to+draw I ended up with"
-
 
             for index, value in enumerate(indices_to_draw):
                 time = self.ActionSet.overall_t_vector[value]
