@@ -63,14 +63,23 @@ class ActionSetObj(object):
             self.t_vector_squared[index] = value**2
 
 
-    def computeFinalPositions(self, v_x_initial, v_y_initial):
+    def computeFinalPositions_old(self, v_x_initial, v_y_initial):
         self.p_x_final = 1.0/2.0 * self.a_x * self.t_f**2 + np.ones(self.num_x_bins) * v_x_initial *self.t_f
         self.p_y_final = 1.0/2.0 * self.a_y * self.t_f**2 + np.ones(self.num_y_bins) * v_y_initial *self.t_f
 
 
-    def computeAllPositions(self, v_x_initial, v_y_initial):
+    def computeAllPositions_old(self, v_x_initial, v_y_initial):
         self.p_x_trajectories = 1.0/2.0 * np.outer(self.a_x, self.t_vector_squared) + np.outer(np.ones(self.num_x_bins) * v_x_initial, self.t_vector)
         self.p_y_trajectories = 1.0/2.0 * np.outer(self.a_y, self.t_vector_squared) + np.outer(np.ones(self.num_y_bins) * v_y_initial, self.t_vector)
+
+
+
+    def computeAllPositions(self, v_x_initial, v_y_initial):
+        v_initial = [0,0,0]
+        self.pos_trajectories = np.zeros(( np.size(self.a_vector,0), np.size(self.a_vector,1), np.size(self.t_vector,0) ))
+        for index, value in enumerate(self.pos_trajectories):
+            self.pos_trajectories[index,:,:] =  1.0/2.0 * np.outer(self.a_vector[index,:], self.t_vector_squared) + np.outer( v_initial , self.t_vector )
+
 
     def drawActionSetFinal(self):
         #print "I am drawing the action set"
