@@ -633,10 +633,12 @@ class Simulator(object):
         return name
 
 
-    def setRobotFrameState(self, x, y, theta):
+    def setRobotFrameState(self, x, y, theta, roll=0.0, pitch=0.0):
         t = vtk.vtkTransform()
         t.Translate(x,y,0.0)
         t.RotateZ(np.degrees(theta))
+        t.RotateY(np.degrees(pitch))
+        t.RotateX(np.degrees(roll))
         self.robot.getChildFrame().copyFrame(t)
 
     # returns true if we are in collision
@@ -728,11 +730,13 @@ class Simulator(object):
         self.roll_drawing = value/10.0
         print "roll changed to ", value/10.0
         self.redrawAccelSphere()
+        self.setRobotFrameState(x=0.0, y=0.0, theta=0.0, roll=self.roll_drawing, pitch=self.pitch_drawing)
 
     def onPitchChanged(self, value):
         self.pitch_drawing = value/10.0
         print "pitch changed to ", value/10.0
         self.redrawAccelSphere()
+        self.setRobotFrameState(x=0.0, y=0.0, theta=0.0, roll=self.roll_drawing, pitch=self.pitch_drawing)
 
 
     def onShowSensorsButton(self):

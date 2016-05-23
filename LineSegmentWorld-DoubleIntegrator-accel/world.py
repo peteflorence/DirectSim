@@ -43,7 +43,7 @@ class World(object):
     def buildAccelArrow(center, accelThrust, roll, pitch, color=[1,0.3,0.0], alpha=0.8):
         d = DebugData()
         a_x = accelThrust*np.sin(pitch)
-        a_y = accelThrust*np.cos(pitch)*np.sin(roll)
+        a_y = -accelThrust*np.cos(pitch)*np.sin(roll)
         a_z = accelThrust*np.cos(pitch)*np.cos(roll)-9.8
 
         end = [center[0] + a_x*0.125, center[1] + a_y*0.125, center[2] + a_z*0.125]
