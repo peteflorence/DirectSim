@@ -11,7 +11,7 @@ from director.debugVis import DebugData
 class ActionSetObj(object):
 
     def __init__(self):
-        self.a_max = 9.8*2 # this is approximately for a 70 degree pitch angle
+        self.a_max = 9.8*2.4 # this is approximately for a 70 degree pitch angle
 
         self.num_accel_thrust_bins = 3
         self.accel_thrust = np.linspace(0.3*self.a_max, self.a_max, self.num_accel_thrust_bins)
@@ -42,7 +42,7 @@ class ActionSetObj(object):
 
             a_x = accel_thrust*math.sin(pitch)
             a_y = accel_thrust*math.cos(pitch)*math.sin(roll)
-            a_z = accel_thrust*math.cos(pitch)*math.cos(roll)
+            a_z = accel_thrust*math.cos(pitch)*math.cos(roll)-9.8
             self.a_vector[index,:] = [a_x, a_y, a_z]
 
         print "A VECTOR", self.a_vector
