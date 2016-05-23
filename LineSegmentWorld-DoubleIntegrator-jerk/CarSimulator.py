@@ -58,9 +58,9 @@ class Simulator(object):
         self.YVelocity_drawing = 0.0
         self.ZVelocity_drawing = 0.0
 
-        self.XAccel_drawing = 0.0
-        self.YAccel_drawing = 0.0
-        self.ZAccel_drawing = 0.0
+        self.accelThrust_drawing = 0.0
+        self.roll_drawing = 0.0
+        self.pitch_drawing = 0.0
 
     def initializeOptions(self):
         self.options = dict()
@@ -436,27 +436,47 @@ class Simulator(object):
         sliderYVelocity.setMinimum(-self.max_velocity)
         l.addWidget(sliderYVelocity)
 
+        sliderZVelocity = QtGui.QSlider(QtCore.Qt.Horizontal)
+        sliderZVelocity.connect('valueChanged(int)', self.onZVelocityChanged)
+        sliderZVelocity.setMaximum(self.max_velocity/4.0)
+        sliderZVelocity.setMinimum(-self.max_velocity/4.0)
+        l.addWidget(sliderZVelocity)
+
 
         addAccelSphereButton = QtGui.QPushButton('Toggle Accel Sphere')
         addAccelSphereButton.connect('clicked()', self.onAddAccelSphereButton)
         l.addWidget(addAccelSphereButton)
 
-        sliderXAccel = QtGui.QSlider(QtCore.Qt.Horizontal)
-        sliderXAccel.connect('valueChanged(int)', self.onXAccelChanged)
-        sliderXAccel.setMaximum(self.ActionSet.a_max)
-        sliderXAccel.setMinimum(-self.ActionSet.a_max)
+        sliderAccelThrust = QtGui.QSlider(QtCore.Qt.Horizontal)
+        sliderAccelThrust.connect('valueChanged(int)', self.onAccelThrustChanged)
+        sliderAccelThrust.setMaximum(self.ActionSet.a_max*10.0)
+        sliderAccelThrust.setMinimum(9.8*10.0)
+        l.addWidget(sliderAccelThrust)
 
-        l.addWidget(sliderXAccel)
+        sliderRoll = QtGui.QSlider(QtCore.Qt.Horizontal)
+        sliderRoll.connect('valueChanged(int)', self.onRollChanged)
+        sliderRoll.setMaximum(np.pi/2.0*70.0/90.0*10.0)
+        sliderRoll.setMinimum(-np.pi/2.0*70.0/90.0*10.0)
+        l.addWidget(sliderRoll)
 
-        sliderYAccel = QtGui.QSlider(QtCore.Qt.Horizontal)
-        sliderYAccel.connect('valueChanged(int)', self.onYAccelChanged)
-        sliderYAccel.setMaximum(self.ActionSet.a_max)
-        sliderYAccel.setMinimum(-self.ActionSet.a_max)
-        l.addWidget(sliderYAccel)
+        sliderPitch = QtGui.QSlider(QtCore.Qt.Horizontal)
+        sliderPitch.connect('valueChanged(int)', self.onPitchChanged)
+        sliderPitch.setMaximum(np.pi/2.0*70.0/90.0*10.0)
+        sliderPitch.setMinimum(-np.pi/2.0*70.0/90.0*10.0)
+        l.addWidget(sliderPitch)
 
-        addGravityButton = QtGui.QPushButton('Add Gravity')
+        
+
+        addGravityButton = QtGui.QPushButton('Toggle Gravity')
         addGravityButton.connect('clicked()', self.onAddGravityButton)
         l.addWidget(addGravityButton)
+
+        sliderJerkTime = QtGui.QSlider(QtCore.Qt.Horizontal)
+        sliderJerkTime.connect('valueChanged(int)', self.onJerkTimeChanged)
+        sliderJerkTime.setMaximum(self.ActionSet.t_f*30)
+        sliderJerkTime.setMinimum(0.0)
+        l.addWidget(sliderJerkTime)
+
 
         firstRaycast = np.ones((self.Sensor.numRays,1))*10.0 + np.random.randn(self.Sensor.numRays,1)*1.0
         self.drawFirstIntersections(self.frame, firstRaycast)
@@ -469,6 +489,7 @@ class Simulator(object):
         randomObstaclesButton.connect('clicked()', self.onRandomObstaclesButton)
         l.addWidget(randomObstaclesButton)
 
+        
 
 
         buildWorldFromRandomObstaclesButton = QtGui.QPushButton('Generate Polygon World')
@@ -483,9 +504,16 @@ class Simulator(object):
         drawActionSetButton.connect('clicked()', self.onDrawActionSetButton)
         l.addWidget(drawActionSetButton)
 
-        drawFunnelsButton = QtGui.QPushButton('Draw 1-sigma')
+        drawFunnelsButton = QtGui.QPushButton('Toggle 1-sigma')
         drawFunnelsButton.connect('clicked()', self.onDrawFunnelsButton)
         l.addWidget(drawFunnelsButton)
+
+        sliderFunnelNumber = QtGui.QSlider(QtCore.Qt.Horizontal)
+        sliderFunnelNumber.connect('valueChanged(int)', self.onFunnelNumberChanged)
+        sliderFunnelNumber.setMaximum(np.size(self.ActionSet.a_vector,0)-1)
+        sliderFunnelNumber.setMinimum(0)
+        l.addWidget(sliderFunnelNumber)
+
 
         runSimButton = QtGui.QPushButton('Simulate')
         runSimButton.connect('clicked()', self.onRunSimButton)
@@ -555,6 +583,10 @@ class Simulator(object):
         self.onRandomObstaclesButton()
         self.app.start()
 
+    def onFunnelNumberChanged(self, value):
+        self.funnel_number = value
+        self.redrawFunnelsButton(change=True)
+
     def drawFirstIntersections(self, frame, firstRaycast):
         origin = np.array(frame.transform.GetPosition())
         d = DebugData()
@@ -620,10 +652,12 @@ class Simulator(object):
         return name
 
 
-    def setRobotFrameState(self, x, y, theta):
+    def setRobotFrameState(self, x, y, theta, roll=0.0, pitch=0.0):
         t = vtk.vtkTransform()
         t.Translate(x,y,0.0)
         t.RotateZ(np.degrees(theta))
+        t.RotateY(np.degrees(pitch))
+        t.RotateX(np.degrees(roll))
         self.robot.getChildFrame().copyFrame(t)
 
     # returns true if we are in collision
@@ -683,7 +717,6 @@ class Simulator(object):
 
         self.XVelocity_drawing = value
         self.onDrawActionSetButton()
-        self.onDrawFunnelsButton(change=False)
         self.redrawAccelSphere()
         print "x velocity changed to ", value
 
@@ -692,22 +725,43 @@ class Simulator(object):
 
         self.YVelocity_drawing = -value
         self.onDrawActionSetButton()
-        self.onDrawFunnelsButton(change=False)
         self.redrawAccelSphere()
         print "y velocity changed to ", -value
 
+    def onZVelocityChanged(self, value):
+        print value
 
-    def onXAccelChanged(self, value):
-        self.XAccel_drawing = value
-        print "x accel changed to ", -value
-        self.onAddAccelSphereButton()
-
-    def onYAccelChanged(self, value):
-        self.YAccel_drawing = -value
-        print "y accel changed to ", -value
-        self.onAddAccelSphereButton()
+        self.ZVelocity_drawing = value
+        self.onDrawActionSetButton()
+        self.redrawAccelSphere()
+        print "z velocity changed to ", value
 
 
+    def onAccelThrustChanged(self, value):
+        self.accelThrust_drawing = value/10.0
+        print "accel thrust changed to ", value/10.0
+        self.redrawAccelSphere()
+        self.onDrawActionSetButton()
+
+    def onRollChanged(self, value):
+        self.roll_drawing = value/10.0
+        print "roll changed to ", value/10.0
+        self.redrawAccelSphere()
+        self.setRobotFrameState(x=0.0, y=0.0, theta=0.0, roll=self.roll_drawing, pitch=self.pitch_drawing)
+        self.onDrawActionSetButton()
+
+    def onPitchChanged(self, value):
+        self.pitch_drawing = value/10.0
+        print "pitch changed to ", value/10.0
+        self.redrawAccelSphere()
+        self.setRobotFrameState(x=0.0, y=0.0, theta=0.0, roll=self.roll_drawing, pitch=self.pitch_drawing)
+        self.onDrawActionSetButton()
+
+    def onJerkTimeChanged(self, value):
+        self.ActionSet.setTFinalJerk(value/30.0)
+        print "t_f_jerk changed to ", value/30.0
+        self.onDrawActionSetButton()
+        
     def onShowSensorsButton(self):
         print "I pressed the show sensors button"
         self.setInitialStateAtZero()
@@ -790,44 +844,85 @@ class Simulator(object):
     def onDrawActionSetButton(self):
         print "drawing action set"
         #self.ActionSet.computeFinalPositions(self.XVelocity_drawing,self.YVelocity_drawing)
-        self.ActionSet.computeAllPositions(self.XVelocity_drawing,self.YVelocity_drawing, self.ZVelocity_drawing)
+        self.calcInitialAccelVector()
+        self.ActionSet.computeAllPositions(self.XVelocity_drawing,self.YVelocity_drawing, self.ZVelocity_drawing, self.a_x_initial, self.a_y_initial, self.a_z_initial)
         #self.ActionSet.drawActionSetFinal()
         self.ActionSet.drawActionSetFull()
+        self.redrawFunnelsButton()
 
-    def onDrawFunnelsButton(self, change=True):
+    def calcInitialAccelVector(self):
+        self.a_x_initial = self.accelThrust_drawing*np.sin(self.pitch_drawing)
+        self.a_y_initial = -self.accelThrust_drawing*np.cos(self.pitch_drawing)*np.sin(self.roll_drawing)
+        self.a_z_initial = self.accelThrust_drawing*np.cos(self.pitch_drawing)*np.cos(self.roll_drawing)-9.8
 
-        if change == True:
-            self.funnel_number = self.funnel_number + 1
-            if self.funnel_number == np.size(self.ActionSet.pos_trajectories,0):
-                self.funnel_number = 0
+    def onDrawFunnelsButton(self):
+        self.funnels_toggle = not self.funnels_toggle
+        if self.funnels_toggle:
+            self.onDrawActionSetButton()
+        if not self.funnels_toggle:
+            for i in xrange(0,10):
+                x_center = self.ActionSet.pos_trajectories[self.funnel_number,0,i]
+                y_center = self.ActionSet.pos_trajectories[self.funnel_number,1,i]
+                z_center = self.ActionSet.pos_trajectories[self.funnel_number,2,i]
+                World.buildEllipse(i, [x_center,y_center,z_center], 0.0, 0.0, 0.0, alpha=0.3)
 
-        variance_x = 1.5 + abs(self.XVelocity_drawing*0.1)
-        variance_y = 1.5 + abs(self.YVelocity_drawing*0.1)
-        variance_z = 1.5 + abs(self.ZVelocity_drawing*0.1)
 
-        #self.ActionSet.computeAllPositions(self.XVelocity_drawing,self.YVelocity_drawing,self.ZVelocity_drawing)
+    def redrawFunnelsButton(self, change=True):
+        if self.funnels_toggle:
+            variance_x = 1.5 + abs(self.XVelocity_drawing*0.1)
+            variance_y = 1.5 + abs(self.YVelocity_drawing*0.1)
+            variance_z = 1.5 + abs(self.ZVelocity_drawing*0.1)
 
-        for i in xrange(np.size(self.ActionSet.pos_trajectories,2)):
-            x_center = self.ActionSet.pos_trajectories[self.funnel_number,0,i]
-            y_center = self.ActionSet.pos_trajectories[self.funnel_number,1,i]
-            z_center = self.ActionSet.pos_trajectories[self.funnel_number,2,i]
-            World.buildEllipse(i, [x_center,y_center,z_center], variance_x*i/10.0*0.5, variance_y*i/10.0*0.5, variance_z*i/10.0*0.5, alpha=0.3)
+            #self.ActionSet.computeAllPositions(self.XVelocity_drawing,self.YVelocity_drawing,self.ZVelocity_drawing)
+
+            #find almost equally spaced indexes
+            indices_to_draw = np.zeros(10)
+            
+            indices_to_draw[0] = 0
+            next_time = 0 + self.ActionSet.t_f/10.0
+
+            number = 0
+            for index, value in enumerate(self.ActionSet.overall_t_vector):
+                print next_time, "is my current next_time"
+                print value, "is the time I'm considering"
+                print number, "is my number"
+                if value > next_time:
+                    indices_to_draw[number] = index
+                    number = number + 1
+                    next_time = next_time + self.ActionSet.t_f/10.0
+
+            print indices_to_draw, "is indices+to+draw I ended up with"
+
+
+            for index, value in enumerate(indices_to_draw):
+                time = self.ActionSet.overall_t_vector[value]
+                x_center = self.ActionSet.pos_trajectories[self.funnel_number,0,value]
+                y_center = self.ActionSet.pos_trajectories[self.funnel_number,1,value]
+                z_center = self.ActionSet.pos_trajectories[self.funnel_number,2,value]
+                print index
+                World.buildEllipse(index, [x_center,y_center,z_center], variance_x*time, variance_y*time, variance_z*time, alpha=0.3)
+
 
     def redrawAccelSphere(self):
         if self.AccelSphere_toggle:
             self.AccelSphere = World.buildAccelSphere([self.XVelocity_drawing*self.ActionSet.t_f,self.YVelocity_drawing*self.ActionSet.t_f,self.ZVelocity_drawing*self.ActionSet.t_f], a_max=self.ActionSet.a_max*0.125)
-            self.AccelArrow = World.buildAccelArrow([0,0,0], a_x=self.XAccel_drawing/5.0, a_y=self.YAccel_drawing/5.0, a_z=self.ZAccel_drawing/5.0)
+            self.AccelArrow = World.buildAccelArrow([0,0,0], self.accelThrust_drawing, self.roll_drawing, self.pitch_drawing)
+            if self.Gravity_toggle:
+                 World.gravitizeAccelSphere(self.AccelSphere, gravity_max=9.8*0.125)
 
 
     def onAddAccelSphereButton(self):
         self.AccelSphere_toggle = not self.AccelSphere_toggle
         if not self.AccelSphere_toggle:
             self.AccelSphere = World.buildAccelSphere([self.XVelocity_drawing*self.ActionSet.t_f,self.YVelocity_drawing*self.ActionSet.t_f,self.ZVelocity_drawing*self.ActionSet.t_f], a_max=0.0)
+            self.AccelArrow = World.buildAccelArrow([0,0,0], 0.0+9.8, 0.0, 0.0)
         else:
             self.redrawAccelSphere()
 
     def onAddGravityButton(self):
-        World.gravitizeAccelSphere(self.AccelSphere, gravity_max=9.8*0.125)
+        self.Gravity_toggle = not self.Gravity_toggle
+        self.redrawAccelSphere()
+       
 
     def onRunSimButton(self):
         self.runBatchSimulation()
@@ -869,6 +964,8 @@ class Simulator(object):
         self.counter = 1
         self.funnel_number = 0
         self.AccelSphere_toggle = False
+        self.Gravity_toggle = False
+        self.funnels_toggle = False
         
         # for use in playback
         self.dt = self.options['dt']

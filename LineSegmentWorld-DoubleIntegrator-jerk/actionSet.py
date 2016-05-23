@@ -30,7 +30,6 @@ class ActionSetObj(object):
             max_up = math.sqrt(self.a_max**2 - 0.6*self.a_max**2)-9.8
 
             theta = (i-9)*2*np.pi/8
-            print theta, np.arccos(theta), "THETA AND ARCCOS(THETA)"
             self.a_vector[i,:] = [np.cos(theta)*self.a_max_horizontal*0.6, np.sin(theta)*self.a_max_horizontal*0.6, 0] 
             self.a_vector[i+8,:] = [np.cos(theta)*self.a_max_horizontal*0.6, np.sin(theta)*self.a_max_horizontal*0.6, max_up] 
             self.a_vector[i+16,:] = [np.cos(theta)*self.a_max_horizontal*0.6, np.sin(theta)*self.a_max_horizontal*0.6, -max_up] 
@@ -44,16 +43,33 @@ class ActionSetObj(object):
             self.a_vector[i+8,:] = [np.cos(theta)*self.a_max_horizontal*0.6, np.sin(theta)*self.a_max_horizontal*0.6, max_up] 
             self.a_vector[i+16,:] = [np.cos(theta)*self.a_max_horizontal*0.6, np.sin(theta)*self.a_max_horizontal*0.6, -max_up] 
 
-        print "A VECTOR", self.a_vector
 
-
+        self.t_f_jerk = 0.0
         self.t_f = 0.500 # 500 ms simulate forward time
 
-        self.numPointsToDraw = 10
-        self.t_vector = np.linspace(0,self.t_f,self.numPointsToDraw)
-        self.t_vector_squared = 1.0*self.t_vector
-        for index, value in enumerate(self.t_vector_squared):
-            self.t_vector_squared[index] = value**2
+        self.numPointsToDraw = 10 # each, for jerk portion and accel portion
+        self.computeTimeVectors()
+        
+        
+    def setTFinalJerk(self, t_f_jerk):
+        self.t_f_jerk = t_f_jerk
+        self.computeTimeVectors()
+
+    def computeTimeVectors(self):
+        self.t_vector_jerk = np.linspace(0,self.t_f_jerk,self.numPointsToDraw)
+        self.t_vector_jerk_squared = 1.0*self.t_vector_jerk
+        for index, value in enumerate(self.t_vector_jerk_squared):
+            self.t_vector_jerk_squared[index] = value**2
+        self.t_vector_jerk_cubed = 1.0*self.t_vector_jerk
+        for index, value in enumerate(self.t_vector_jerk_cubed):
+            self.t_vector_jerk_cubed[index] = value**3
+
+        self.t_vector_accel = np.linspace(0,self.t_f-self.t_f_jerk,self.numPointsToDraw)
+        self.t_vector_accel_squared = 1.0*self.t_vector_accel
+        for index, value in enumerate(self.t_vector_accel_squared):
+            self.t_vector_accel_squared[index] = value**2
+
+        self.overall_t_vector = np.hstack((self.t_vector_jerk, self.t_vector_accel+np.ones(10)*self.t_f_jerk))
 
 
     def computeFinalPositions_old(self, v_x_initial, v_y_initial):
@@ -67,12 +83,26 @@ class ActionSetObj(object):
 
 
 
-    def computeAllPositions(self, v_x_initial, v_y_initial, v_z_initial):
-        v_initial = [v_x_initial, v_y_initial, v_z_initial]
-        self.pos_trajectories = np.zeros(( np.size(self.a_vector,0), np.size(self.a_vector,1), np.size(self.t_vector,0) ))
-        for index, value in enumerate(self.pos_trajectories):
-            self.pos_trajectories[index,:,:] =  1.0/2.0 * np.outer(self.a_vector[index,:], self.t_vector_squared) + np.outer( v_initial , self.t_vector )
-        print self.pos_trajectories, "IS MY TRAJS"
+    def computeAllPositions(self, v_x_initial, v_y_initial, v_z_initial, a_x_initial=0.0, a_y_initial=0.0, a_z_initial=0.0):
+        v_initial = np.array([v_x_initial, v_y_initial, v_z_initial])
+        a_initial = np.array([a_x_initial, a_y_initial, a_z_initial])
+        self.pos_trajectories = np.zeros(( np.size(self.a_vector,0), np.size(self.a_vector,1), np.size(self.t_vector_jerk,0) + np.size(self.t_vector_accel,0) ))
+
+        if self.t_f_jerk ==0:
+            for index, value in enumerate(self.pos_trajectories):
+                self.pos_trajectories[index,:,self.numPointsToDraw:] =  1.0/2.0 * np.outer(self.a_vector[index,:], self.t_vector_accel_squared) + np.outer( v_initial, self.t_vector_accel )
+
+        else:
+            for index, value in enumerate(self.pos_trajectories):
+                
+                # jerk portion
+                jerk = (self.a_vector[index,:] - a_initial) / self.t_f_jerk
+                self.pos_trajectories[index,:,0:self.numPointsToDraw] =  1.0/6.0 * np.outer(jerk, self.t_vector_jerk_cubed)  + 1.0/2.0 * np.outer(a_initial, self.t_vector_jerk_squared) + np.outer( v_initial , self.t_vector_jerk )
+                velocity_end_of_jerk = 1/2*jerk*self.t_f_jerk**2 + a_initial*self.t_f_jerk + v_initial
+                position_end_of_jerk = self.pos_trajectories[index,:,self.numPointsToDraw-1]
+
+                # constant accel portion
+                self.pos_trajectories[index,:,self.numPointsToDraw:] =  1.0/2.0 * np.outer(self.a_vector[index,:], self.t_vector_accel_squared) + np.outer( velocity_end_of_jerk, self.t_vector_accel ) + np.outer( position_end_of_jerk, np.ones(self.numPointsToDraw))
 
 
     def drawActionSetFinal(self):
@@ -97,7 +127,7 @@ class ActionSetObj(object):
         d = DebugData()
 
         for index, value in enumerate(self.pos_trajectories):
-                for time_step_index in xrange(self.numPointsToDraw-1):
+                for time_step_index in xrange(2*self.numPointsToDraw-1):
         
                     firstX = value[0,time_step_index]
                     firstY = value[1,time_step_index]
