@@ -471,6 +471,13 @@ class Simulator(object):
         addGravityButton.connect('clicked()', self.onAddGravityButton)
         l.addWidget(addGravityButton)
 
+        sliderJerkTime = QtGui.QSlider(QtCore.Qt.Horizontal)
+        sliderJerkTime.connect('valueChanged(int)', self.onJerkTimeChanged)
+        sliderJerkTime.setMaximum(self.ActionSet.t_f*30)
+        sliderJerkTime.setMinimum(0.0)
+        l.addWidget(sliderJerkTime)
+
+
         firstRaycast = np.ones((self.Sensor.numRays,1))*10.0 + np.random.randn(self.Sensor.numRays,1)*1.0
         self.drawFirstIntersections(self.frame, firstRaycast)
 
@@ -738,7 +745,10 @@ class Simulator(object):
         self.redrawAccelSphere()
         self.setRobotFrameState(x=0.0, y=0.0, theta=0.0, roll=self.roll_drawing, pitch=self.pitch_drawing)
 
-
+    def onJerkTimeChanged(self, value):
+        self.ActionSet.t_f_jerk = value/30.0
+        print "t_f_jerk changed to ", value/30.0
+        
     def onShowSensorsButton(self):
         print "I pressed the show sensors button"
         self.setInitialStateAtZero()

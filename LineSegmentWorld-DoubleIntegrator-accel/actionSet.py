@@ -44,6 +44,7 @@ class ActionSetObj(object):
             self.a_vector[i+16,:] = [np.cos(theta)*self.a_max_horizontal*0.6, np.sin(theta)*self.a_max_horizontal*0.6, -max_up] 
 
 
+        self.t_f_jerk = 0.0
         self.t_f = 0.500 # 500 ms simulate forward time
 
         self.numPointsToDraw = 10
