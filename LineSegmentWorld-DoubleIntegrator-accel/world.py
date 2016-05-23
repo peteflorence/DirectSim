@@ -40,9 +40,13 @@ class World(object):
         obj = vis.updatePolyData(polyData, str(i), color=color, alpha=alpha)
 
     @staticmethod
-    def buildAccelArrow(center, a_x, a_y, a_z, color=[1,0.3,0.0], alpha=0.8):
+    def buildAccelArrow(center, accelThrust, roll, pitch, color=[1,0.3,0.0], alpha=0.8):
         d = DebugData()
-        end = [center[0] + a_x, center[1] + a_y, center[2] + a_z]
+        a_x = accelThrust*np.sin(pitch)
+        a_y = accelThrust*np.cos(pitch)*np.sin(roll)
+        a_z = accelThrust*np.cos(pitch)*np.cos(roll)-9.8
+
+        end = [center[0] + a_x*0.125, center[1] + a_y*0.125, center[2] + a_z*0.125]
         d.addArrow(center, end, tubeRadius=0.03,  headRadius=0.15, color=color)
         polyData = d.getPolyData()
     

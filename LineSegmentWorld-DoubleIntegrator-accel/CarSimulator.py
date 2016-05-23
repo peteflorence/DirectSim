@@ -58,9 +58,9 @@ class Simulator(object):
         self.YVelocity_drawing = 0.0
         self.ZVelocity_drawing = 0.0
 
-        self.XAccel_drawing = 0.0
-        self.YAccel_drawing = 0.0
-        self.ZAccel_drawing = 0.0
+        self.accelThrust_drawing = 0.0
+        self.roll_drawing = 0.0
+        self.pitch_drawing = 0.0
 
     def initializeOptions(self):
         self.options = dict()
@@ -447,18 +447,25 @@ class Simulator(object):
         addAccelSphereButton.connect('clicked()', self.onAddAccelSphereButton)
         l.addWidget(addAccelSphereButton)
 
-        sliderXAccel = QtGui.QSlider(QtCore.Qt.Horizontal)
-        sliderXAccel.connect('valueChanged(int)', self.onXAccelChanged)
-        sliderXAccel.setMaximum(self.ActionSet.a_max)
-        sliderXAccel.setMinimum(-self.ActionSet.a_max)
+        sliderAccelThrust = QtGui.QSlider(QtCore.Qt.Horizontal)
+        sliderAccelThrust.connect('valueChanged(int)', self.onAccelThrustChanged)
+        sliderAccelThrust.setMaximum(self.ActionSet.a_max*10.0)
+        sliderAccelThrust.setMinimum(9.8*10.0)
+        l.addWidget(sliderAccelThrust)
 
-        l.addWidget(sliderXAccel)
+        sliderRoll = QtGui.QSlider(QtCore.Qt.Horizontal)
+        sliderRoll.connect('valueChanged(int)', self.onRollChanged)
+        sliderRoll.setMaximum(np.pi/2.0*70.0/90.0*10.0)
+        sliderRoll.setMinimum(-np.pi/2.0*70.0/90.0*10.0)
+        l.addWidget(sliderRoll)
 
-        sliderYAccel = QtGui.QSlider(QtCore.Qt.Horizontal)
-        sliderYAccel.connect('valueChanged(int)', self.onYAccelChanged)
-        sliderYAccel.setMaximum(self.ActionSet.a_max)
-        sliderYAccel.setMinimum(-self.ActionSet.a_max)
-        l.addWidget(sliderYAccel)
+        sliderPitch = QtGui.QSlider(QtCore.Qt.Horizontal)
+        sliderPitch.connect('valueChanged(int)', self.onPitchChanged)
+        sliderPitch.setMaximum(np.pi/2.0*70.0/90.0*10.0)
+        sliderPitch.setMinimum(-np.pi/2.0*70.0/90.0*10.0)
+        l.addWidget(sliderPitch)
+
+        
 
         addGravityButton = QtGui.QPushButton('Add Gravity')
         addGravityButton.connect('clicked()', self.onAddGravityButton)
@@ -712,15 +719,20 @@ class Simulator(object):
         print "z velocity changed to ", value
 
 
-    def onXAccelChanged(self, value):
-        self.XAccel_drawing = value
-        print "x accel changed to ", -value
-        self.onAddAccelSphereButton()
+    def onAccelThrustChanged(self, value):
+        self.accelThrust_drawing = value/10.0
+        print "accel thrust changed to ", value/10.0
+        self.redrawAccelSphere()
 
-    def onYAccelChanged(self, value):
-        self.YAccel_drawing = -value
-        print "y accel changed to ", -value
-        self.onAddAccelSphereButton()
+    def onRollChanged(self, value):
+        self.roll_drawing = value/10.0
+        print "roll changed to ", value/10.0
+        self.redrawAccelSphere()
+
+    def onPitchChanged(self, value):
+        self.pitch_drawing = value/10.0
+        print "pitch changed to ", value/10.0
+        self.redrawAccelSphere()
 
 
     def onShowSensorsButton(self):
@@ -831,7 +843,7 @@ class Simulator(object):
     def redrawAccelSphere(self):
         if self.AccelSphere_toggle:
             self.AccelSphere = World.buildAccelSphere([self.XVelocity_drawing*self.ActionSet.t_f,self.YVelocity_drawing*self.ActionSet.t_f,self.ZVelocity_drawing*self.ActionSet.t_f], a_max=self.ActionSet.a_max*0.125)
-            self.AccelArrow = World.buildAccelArrow([0,0,0], a_x=self.XAccel_drawing/5.0, a_y=self.YAccel_drawing/5.0, a_z=self.ZAccel_drawing/5.0)
+            self.AccelArrow = World.buildAccelArrow([0,0,0], self.accelThrust_drawing, self.roll_drawing, self.pitch_drawing)
             if self.Gravity_toggle:
                  World.gravitizeAccelSphere(self.AccelSphere, gravity_max=9.8*0.125)
 
@@ -840,6 +852,7 @@ class Simulator(object):
         self.AccelSphere_toggle = not self.AccelSphere_toggle
         if not self.AccelSphere_toggle:
             self.AccelSphere = World.buildAccelSphere([self.XVelocity_drawing*self.ActionSet.t_f,self.YVelocity_drawing*self.ActionSet.t_f,self.ZVelocity_drawing*self.ActionSet.t_f], a_max=0.0)
+            self.AccelArrow = World.buildAccelArrow([0,0,0], 0.0+9.8, 0.0, 0.0)
         else:
             self.redrawAccelSphere()
 
