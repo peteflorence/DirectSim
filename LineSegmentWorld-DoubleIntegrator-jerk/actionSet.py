@@ -1,5 +1,6 @@
 import director.vtkAll as vtk
 import director.visualization as vis
+import math
 
 import numpy as np
 import director.objectmodel as om
@@ -13,13 +14,39 @@ class ActionSetObj(object):
         self.a_max = 9.8*2 # this is approximately for a 70 degree pitch angle
 
         self.num_accel_thrust_bins = 3
-        self.accel_thrust = np.linspace(0, self.a_max, self.num_accel_thrust_bins)
+        self.accel_thrust = np.linspace(0.3*self.a_max, self.a_max, self.num_accel_thrust_bins)
         
         self.num_roll_bins = 5
-        self.roll = np.linspace(-np.pi, np.pi, self.num_roll_bins)
+        self.roll = np.linspace(-np.pi*70.0/90.0, np.pi*70.0/90.0, self.num_roll_bins)
 
         self.num_pitch_bins = 5
-        self.pitch = np.linspace(-np.pi, np.pi, self.num_pitch_bins)
+        self.pitch = np.linspace(-np.pi*70.0/90.0, np.pi*70.0/90.0, self.num_pitch_bins)
+
+        self.action_vector = np.zeros((self.num_accel_thrust_bins*self.num_roll_bins*self.num_pitch_bins+1, 3))
+        self.action_vector[0,:] = [0,0,0]
+        index = 1
+        for i in self.accel_thrust:
+            for j in self.roll:
+                for k in self.pitch:
+                    self.action_vector[index,:] = [i,j,k]
+                    index=index+1
+
+        print "ACTION VECTOR", self.action_vector
+
+        self.a_vector = self.action_vector *0.0
+
+        for index, value in enumerate(self.action_vector):
+            accel_thrust = value[0]
+            roll = value[1]
+            pitch = value[2]
+
+            a_x = accel_thrust*math.sin(pitch)
+            a_y = accel_thrust*math.cos(pitch)*math.sin(roll)
+            a_z = accel_thrust*math.cos(pitch)*math.cos(roll)
+            self.a_vector[index,:] = [a_x, a_y, a_z]
+
+        print "A VECTOR", self.a_vector
+
 
         self.num_x_bins = 5
         self.a_x = np.linspace(-self.a_max, self.a_max, self.num_x_bins)
