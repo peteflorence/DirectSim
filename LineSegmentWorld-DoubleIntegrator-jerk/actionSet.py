@@ -121,7 +121,7 @@ class ActionSetObj(object):
 
         obj = vis.updatePolyData(d.getPolyData(), 'action_set', colorByName='RGB255')
 
-    def drawActionSetFull(self):
+    def drawActionSetFull(self, go_nowhere=False):
         #print "I am drawing the action set"
 
         d = DebugData()
@@ -147,8 +147,23 @@ class ActionSetObj(object):
                     else:
                         color=[0.1,0.1,1.0]
 
+                    if go_nowhere:
+                        firstEndpt = [0,0,0]
+                        secondEndpt = [0,0,0.001]
+
                     d.addLine(firstEndpt, secondEndpt, radius=0.02, color=color)
 
+
+        obj = vis.updatePolyData(d.getPolyData(), 'action_set', colorByName='RGB255')
+
+    def drawActionSetEmpty(self):
+        #print "I am drawing the action set"
+
+        d = DebugData()
+        for index, value in enumerate(self.pos_trajectories):
+                for time_step_index in xrange(2*self.numPointsToDraw-1):
+        
+                    d.addLine([0,0,0], [0,0,0], radius=0.01, color=[1,1,1])
 
         obj = vis.updatePolyData(d.getPolyData(), 'action_set', colorByName='RGB255')
 

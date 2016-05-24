@@ -503,8 +503,8 @@ class Simulator(object):
         # findLocalGoalButton.connect('clicked()', self.onFindLocalGoalButton)
         # l.addWidget(findLocalGoalButton)
 
-        drawActionSetButton = QtGui.QPushButton('Draw Action Set')
-        drawActionSetButton.connect('clicked()', self.onDrawActionSetButton)
+        drawActionSetButton = QtGui.QPushButton('Toggle Action Set')
+        drawActionSetButton.connect('clicked()', self.onToggleActionSetButton)
         l.addWidget(drawActionSetButton)
 
         drawFunnelsButton = QtGui.QPushButton('Toggle 1-sigma')
@@ -844,14 +844,24 @@ class Simulator(object):
 
         return self.polygon_initial_raycastLocations[middle_index_of_gap,:] 
 
+    def onToggleActionSetButton(self):
+        self.drawActionSet_toggle = not self.drawActionSet_toggle
+        if self.drawActionSet_toggle:
+            self.onDrawActionSetButton()
+        else:
+            self.calcInitialAccelVector()
+            self.ActionSet.computeAllPositions(self.XVelocity_drawing,self.YVelocity_drawing, self.ZVelocity_drawing, self.a_x_initial, self.a_y_initial, self.a_z_initial)
+            self.ActionSet.drawActionSetFull(go_nowhere=True)
+
     def onDrawActionSetButton(self):
-        print "drawing action set"
-        #self.ActionSet.computeFinalPositions(self.XVelocity_drawing,self.YVelocity_drawing)
-        self.calcInitialAccelVector()
-        self.ActionSet.computeAllPositions(self.XVelocity_drawing,self.YVelocity_drawing, self.ZVelocity_drawing, self.a_x_initial, self.a_y_initial, self.a_z_initial)
-        #self.ActionSet.drawActionSetFinal()
-        self.ActionSet.drawActionSetFull()
-        self.redrawFunnelsButton()
+        if self.drawActionSet_toggle:
+            print "drawing action set"
+            #self.ActionSet.computeFinalPositions(self.XVelocity_drawing,self.YVelocity_drawing)
+            self.calcInitialAccelVector()
+            self.ActionSet.computeAllPositions(self.XVelocity_drawing,self.YVelocity_drawing, self.ZVelocity_drawing, self.a_x_initial, self.a_y_initial, self.a_z_initial)
+            #self.ActionSet.drawActionSetFinal()
+            self.ActionSet.drawActionSetFull()
+            self.redrawFunnelsButton()
 
     def calcInitialAccelVector(self):
         self.a_x_initial = self.accelThrust_drawing*np.sin(self.pitch_drawing)
@@ -962,6 +972,7 @@ class Simulator(object):
         self.AccelSphere_toggle = False
         self.Gravity_toggle = False
         self.funnels_toggle = False
+        self.drawActionSet_toggle = False
         
         # for use in playback
         self.dt = self.options['dt']
