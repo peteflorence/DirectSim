@@ -126,7 +126,9 @@ class ActionSetObj(object):
 
         d = DebugData()
 
+        
         for index, value in enumerate(self.pos_trajectories):
+                
                 for time_step_index in xrange(2*self.numPointsToDraw-1):
         
                     firstX = value[0,time_step_index]
@@ -140,7 +142,12 @@ class ActionSetObj(object):
                     firstEndpt = (firstX,firstY,firstZ)
                     secondEndpt = (secondX,secondY,secondZ)
 
-                    d.addLine(firstEndpt, secondEndpt, radius=0.02, color=[0.8,0,0.8])
+                    if time_step_index >= 10:
+                        color=[0.8,0,0.8]
+                    else:
+                        color=[0.1,0.1,1.0]
+
+                    d.addLine(firstEndpt, secondEndpt, radius=0.02, color=color)
 
 
         obj = vis.updatePolyData(d.getPolyData(), 'action_set', colorByName='RGB255')

@@ -447,6 +447,10 @@ class Simulator(object):
         addAccelSphereButton.connect('clicked()', self.onAddAccelSphereButton)
         l.addWidget(addAccelSphereButton)
 
+        addGravityButton = QtGui.QPushButton('Toggle Gravity')
+        addGravityButton.connect('clicked()', self.onAddGravityButton)
+        l.addWidget(addGravityButton)
+
         sliderAccelThrust = QtGui.QSlider(QtCore.Qt.Horizontal)
         sliderAccelThrust.connect('valueChanged(int)', self.onAccelThrustChanged)
         sliderAccelThrust.setMaximum(self.ActionSet.a_max*10.0)
@@ -467,9 +471,7 @@ class Simulator(object):
 
         
 
-        addGravityButton = QtGui.QPushButton('Toggle Gravity')
-        addGravityButton.connect('clicked()', self.onAddGravityButton)
-        l.addWidget(addGravityButton)
+        
 
         sliderJerkTime = QtGui.QSlider(QtCore.Qt.Horizontal)
         sliderJerkTime.connect('valueChanged(int)', self.onJerkTimeChanged)
@@ -481,9 +483,9 @@ class Simulator(object):
         firstRaycast = np.ones((self.Sensor.numRays,1))*10.0 + np.random.randn(self.Sensor.numRays,1)*1.0
         self.drawFirstIntersections(self.frame, firstRaycast)
 
-        randomGlobalGoalButton = QtGui.QPushButton('Initialize Random Global Goal')
-        randomGlobalGoalButton.connect('clicked()', self.onRandomGlobalGoalButton)
-        l.addWidget(randomGlobalGoalButton)
+        # randomGlobalGoalButton = QtGui.QPushButton('Initialize Random Global Goal')
+        # randomGlobalGoalButton.connect('clicked()', self.onRandomGlobalGoalButton)
+        # l.addWidget(randomGlobalGoalButton)
 
         randomObstaclesButton = QtGui.QPushButton('Initialize Random Obstacles')
         randomObstaclesButton.connect('clicked()', self.onRandomObstaclesButton)
@@ -493,13 +495,13 @@ class Simulator(object):
         
 
 
-        buildWorldFromRandomObstaclesButton = QtGui.QPushButton('Generate Polygon World')
-        buildWorldFromRandomObstaclesButton.connect('clicked()', self.onBuildWorldFromRandomObstacles)
-        l.addWidget(buildWorldFromRandomObstaclesButton)
+        # buildWorldFromRandomObstaclesButton = QtGui.QPushButton('Generate Polygon World')
+        # buildWorldFromRandomObstaclesButton.connect('clicked()', self.onBuildWorldFromRandomObstacles)
+        # l.addWidget(buildWorldFromRandomObstaclesButton)
 
-        findLocalGoalButton = QtGui.QPushButton('Find Local Goal (Heuristic)')
-        findLocalGoalButton.connect('clicked()', self.onFindLocalGoalButton)
-        l.addWidget(findLocalGoalButton)
+        # findLocalGoalButton = QtGui.QPushButton('Find Local Goal (Heuristic)')
+        # findLocalGoalButton.connect('clicked()', self.onFindLocalGoalButton)
+        # l.addWidget(findLocalGoalButton)
 
         drawActionSetButton = QtGui.QPushButton('Draw Action Set')
         drawActionSetButton.connect('clicked()', self.onDrawActionSetButton)
@@ -516,12 +518,12 @@ class Simulator(object):
         l.addWidget(sliderFunnelNumber)
 
 
-        runSimButton = QtGui.QPushButton('Simulate')
-        runSimButton.connect('clicked()', self.onRunSimButton)
-        l.addWidget(runSimButton)
+        # runSimButton = QtGui.QPushButton('Simulate')
+        # runSimButton.connect('clicked()', self.onRunSimButton)
+        # l.addWidget(runSimButton)
 
-        playButton = QtGui.QPushButton('Play/Pause')
-        playButton.connect('clicked()', self.onPlayButton)
+        # playButton = QtGui.QPushButton('Play/Pause')
+        # playButton.connect('clicked()', self.onPlayButton)
 
         slider = QtGui.QSlider(QtCore.Qt.Horizontal)
         slider.connect('valueChanged(int)', self.onSliderChanged)
@@ -553,7 +555,7 @@ class Simulator(object):
 
 
 
-        l.addWidget(playButton)
+        # l.addWidget(playButton)
         l.addWidget(slider)
 
         w = QtGui.QWidget()
@@ -894,7 +896,6 @@ class Simulator(object):
                 x_center = self.ActionSet.pos_trajectories[self.funnel_number,0,value]
                 y_center = self.ActionSet.pos_trajectories[self.funnel_number,1,value]
                 z_center = self.ActionSet.pos_trajectories[self.funnel_number,2,value]
-                print index
                 World.buildEllipse(index, [x_center,y_center,z_center], variance_x*time, variance_y*time, variance_z*time, alpha=0.3)
 
 
