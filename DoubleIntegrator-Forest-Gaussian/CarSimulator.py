@@ -210,6 +210,10 @@ class Simulator(object):
 
         return True
 
+    def computeProbabilitiesOfCollisionAllTrajectories(self, currentRaycastLocations):
+        pass
+
+
 
 
 
@@ -245,7 +249,7 @@ class Simulator(object):
             self.setRobotFrameState(x,y,0.0)
             # self.setRobotState(currentCarState[0], currentCarState[1], currentCarState[2])
 
-            currentRaycast = self.Sensor.raycastAll(self.frame)
+            currentRaycastLocations = self.Sensor.raycastAllLocations(self.frame)
             
 
 
@@ -255,6 +259,8 @@ class Simulator(object):
 
             # compute all trajectories from action set
             self.ActionSet.computeAllPositions(currentCarState[0], currentCarState[1],currentCarState[2],currentCarState[3])
+
+            self.computeProbabilitiesOfCollisionAllTrajectories(currentRaycastLocations)
 
 
             sorted_ranks_with_indices = self.rankTrajectories()
@@ -367,8 +373,6 @@ class Simulator(object):
         self.actionIndicesOverTime = self.actionIndicesOverTime[0:self.counter+1, :]
         self.controlInputData = self.controlInputData[0:self.counter+1]
         self.endTime = 1.0*self.counter/self.numTimesteps*self.endTime
-
-
 
     def initializeStatusBar(self):
         self.numTicks = 10
@@ -573,7 +577,7 @@ class Simulator(object):
             locator = self.locator
 
         if self.sphere_toggle:
-            sphere_radius=1.0
+            sphere_radius=0.75
         else:
             sphere_radius=0.0
 
@@ -636,6 +640,25 @@ class Simulator(object):
             self.ActionSet.computeAllPositions(self.stateOverTime[self.currentIdx,0], self.stateOverTime[self.currentIdx,1], self.stateOverTime[self.currentIdx,2],self.stateOverTime[self.currentIdx,3])
             #self.ActionSet.drawActionSetFinal()
             self.ActionSet.drawActionSetFull()
+            self.drawChosenFunnel()
+
+    def drawChosenFunnel(self):
+        velocity_initial_x = self.stateOverTime[self.currentIdx,2]
+        velocity_initial_y = self.stateOverTime[self.currentIdx,3]
+
+        variance_x = 2.5 + abs(velocity_initial_x*0.1)
+        variance_y = 2.5 + abs(velocity_initial_y*0.1)
+        variance_z = 1.5
+
+        x_index = self.actionIndicesOverTime[self.currentIdx,0]
+        y_index = self.actionIndicesOverTime[self.currentIdx,1]
+
+        for i in xrange(0,10):
+            time = 0.5/10.0*i
+            x_center = self.ActionSet.p_x_trajectories[x_index, i]
+            y_center = self.ActionSet.p_y_trajectories[y_index, i]
+            z_center = 0.0
+            World.buildEllipse(i, [x_center,y_center,z_center], variance_x*time, variance_y*time, variance_z*time, alpha=0.3)
 
 
     def tick(self):

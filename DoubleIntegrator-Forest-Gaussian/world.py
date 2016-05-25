@@ -23,6 +23,23 @@ class World(object):
         return obj
 
     @staticmethod
+    def buildEllipse(i, center, x_scale, y_scale, z_scale, color=[1,1,1], alpha=1.0):
+        d = DebugData()
+        d.addSphere([0,0,0], radius=1)
+        polyData = d.getPolyData()
+        
+        t = vtk.vtkTransform()
+        t.Scale(x_scale, y_scale, z_scale)
+        polyData = filterUtils.transformPolyData(polyData, t)
+        
+        t = vtk.vtkTransform()
+        t.Translate(center)
+        polyData = filterUtils.transformPolyData(polyData, t)
+
+
+        obj = vis.updatePolyData(polyData, str(i), color=color, alpha=alpha)
+
+    @staticmethod
     def buildGlobalGoal(scale):
         #print "building circle world"
 
