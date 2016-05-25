@@ -262,6 +262,21 @@ class Simulator(object):
 
         return volume / denominator * np.exp(exponent)
 
+    def computeJerkVector(self,controlInput):
+        jerk_vector = []
+        for x_index in xrange(self.ActionSet.num_x_bins):
+            for y_index in xrange(self.ActionSet.num_y_bins):
+                last_x_accel = controlInput[0]
+                last_y_accel = controlInput[1]
+
+                this_x_accel = self.ActionSet.a_x[x_index]
+                this_y_accel = self.ActionSet.a_y[y_index]
+
+                jerk = np.sqrt( (last_x_accel - this_x_accel)**2 + (last_y_accel - this_y_accel)**2 )
+                jerk_vector.append(jerk)
+
+        return np.array(jerk_vector) 
+
 
     def runSingleSimulation(self, controllerType='default', simulationCutoff=None):
 
@@ -284,6 +299,8 @@ class Simulator(object):
         # record the reward data
         runData = dict()
         startIdx = self.counter
+
+        controlInput = [0,0]
 
 
         while (self.counter < self.numTimesteps - 1):
@@ -312,6 +329,8 @@ class Simulator(object):
 
             euclideans_vector = self.terminalEuclideanCostForTrajectories()
 
+            jerk_vector = self.computeJerkVector(controlInput)
+
             
 
             #print np.shape(probability_vector), "is prob vector shape"
@@ -328,7 +347,8 @@ class Simulator(object):
 
             k_collision_cost = 10
             k_terminal_cost = 1
-            sum_vector = probability_vector*k_collision_cost + euclideans_vector/np.max(euclideans_vector)*k_terminal_cost
+            k_jerk = 0.1
+            sum_vector = probability_vector*k_collision_cost + euclideans_vector/np.max(euclideans_vector)*k_terminal_cost + k_jerk*jerk_vector/np.max(jerk_vector)
             min_action_index_in_vector = np.argmin(sum_vector)
             x_index_to_use = indices_list[min_action_index_in_vector][0]
             y_index_to_use = indices_list[min_action_index_in_vector][1]
