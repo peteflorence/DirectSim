@@ -74,6 +74,24 @@ class SensorObj(object):
 
         return locations
 
+    def raycastLocationsOnlyOfIntersections(self, frame):
+        
+        locations = []
+
+        origin = np.array(frame.transform.GetPosition())
+
+        for i in range(0,self.numRays):
+            ray = self.rays[:,i]
+            rayTransformed = np.array(frame.transform.TransformNormal(ray))
+            intersection = self.raycast(self.locator, origin, origin + rayTransformed*self.rayLength)
+            if intersection is None:
+                a = 0
+            else:
+                locations.append(intersection)
+
+        return locations
+
+
     def invertRaycastsToLocations(self, frame, raycasts):
 
         locations = np.zeros((self.numRays,3))

@@ -137,7 +137,7 @@ class Simulator(object):
         print "Finished initialization"
 
 
-    def rankTrajectories(self):
+    def terminalEuclideanCostForTrajectories(self):
         # access the trajectories
         x_traj = self.ActionSet.p_x_trajectories
         y_traj = self.ActionSet.p_y_trajectories
@@ -150,21 +150,20 @@ class Simulator(object):
         global_goal_x = self.globalGoal.global_goal_x
         global_goal_y = self.globalGoal.global_goal_y
 
-        ranks_with_indices = []
+        euclideans_vector = []
 
-        def getKey(item):
-            return item[1]
+        # def getKey(item):
+        #     return item[1]
 
-        final_distances_squared = np.zeros((len(final_x_positions),len(final_y_positions)))
-        for i in xrange(len(final_x_positions)):
-            for j in xrange(len(final_y_positions)):
+        for i in xrange(self.ActionSet.num_x_bins):
+            for j in xrange(self.ActionSet.num_y_bins):
                 distance = (final_x_positions[i] - global_goal_x)**2 + (final_y_positions[j] - global_goal_y)**2
-                ranks_with_indices.append(((i,j), distance))
+                euclideans_vector.append(distance)
 
 
-        sorted_ranks_with_indices = sorted(ranks_with_indices,key=getKey)
+        #sorted_ranks_with_indices = sorted(ranks_with_indices,key=getKey)
 
-        return sorted_ranks_with_indices
+        return np.array(euclideans_vector)
 
     def CheckIfCollisionFreeTrajectoryIndex(self, traj_index):
         # accessing the right trajectory
@@ -210,11 +209,58 @@ class Simulator(object):
 
         return True
 
-    def computeProbabilitiesOfCollisionAllTrajectories(self, currentRaycastLocations):
-        pass
+    def computeProbabilitiesOfCollisionAllTrajectories(self, currentRaycastIntersectionLocations):
+        probability_vector = []
+        indices_vector = []
+        for x_index in xrange(self.ActionSet.num_x_bins):
+            for y_index in xrange(self.ActionSet.num_y_bins):
+                probability_no_collision = self.computeProbabilityOfCollisionOneTrajectory(x_index, y_index, currentRaycastIntersectionLocations)
+                probability_vector.append(probability_no_collision)
+                indices_vector.append([x_index, y_index])
+
+        return np.array(probability_vector), indices_vector
+        
+
+    def computeProbabilityOfCollisionOneTrajectory(self, x_index, y_index, currentRaycastIntersectionLocations):
+        probability_no_collision = 1
+        for time_step_index, time_step_value in enumerate(self.ActionSet.t_vector):
+            for obstacle_center in currentRaycastIntersectionLocations:
+
+                probability_of_collision_step_k_obstacle_j = self.computeProbabilityOfCollisionOneStepOneObstacle(x_index, y_index, time_step_index, time_step_value, obstacle_center)
+
+                probability_no_collision_step_k_obstacle_j = 1 - probability_of_collision_step_k_obstacle_j
+
+                probability_no_collision = probability_no_collision * probability_no_collision_step_k_obstacle_j
+
+        return float(1.0 - probability_no_collision)
+
+    def computeProbabilityOfCollisionOneStepOneObstacle(self, x_index, y_index, time_step_index, time_step_value, obstacle_center):
+        volume = 5.0
+        Sigma_sensor = np.zeros((3,3))
+        np.fill_diagonal(Sigma_sensor, self.sigma_sensor)
+
+        variance_x = (2.5 + abs(self.current_initial_velocity_x*0.1))*time_step_value+0.01
+        variance_y = (2.5 + abs(self.current_initial_velocity_y*0.1))*time_step_value+0.01
+        variance_z = (1.5)*time_step_value+0.01
+
+        Sigma_robot = np.zeros((3,3))
+        np.fill_diagonal(Sigma_sensor, [variance_x, variance_y, variance_z])
 
 
+        Sigma_C = Sigma_robot + Sigma_sensor
 
+        denominator = np.sqrt(np.linalg.det(2*np.pi*Sigma_C))
+
+        x = self.ActionSet.p_x_trajectories[x_index, time_step_index]
+        y = self.ActionSet.p_y_trajectories[y_index, time_step_index]
+        z = 0
+
+        x_robot = np.array([x, y, z])
+        obstacle_center = np.array(obstacle_center)
+
+        exponent = - 0.5 * np.matrix((x_robot - obstacle_center)) * np.matrix(np.linalg.inv(Sigma_C)) * np.matrix((x_robot - obstacle_center)).T
+
+        return volume / denominator * np.exp(exponent)
 
 
     def runSingleSimulation(self, controllerType='default', simulationCutoff=None):
@@ -249,7 +295,7 @@ class Simulator(object):
             self.setRobotFrameState(x,y,0.0)
             # self.setRobotState(currentCarState[0], currentCarState[1], currentCarState[2])
 
-            currentRaycastLocations = self.Sensor.raycastAllLocations(self.frame)
+            currentRaycastIntersectionLocations = self.Sensor.raycastLocationsOnlyOfIntersections(self.frame)
             
 
 
@@ -258,28 +304,35 @@ class Simulator(object):
                 raise ValueError("controller of type " + controllerType + " not supported")
 
             # compute all trajectories from action set
-            self.ActionSet.computeAllPositions(currentCarState[0], currentCarState[1],currentCarState[2],currentCarState[3])
+            self.ActionSet.computeAllPositions(currentCarState[0], currentCarState[1], currentCarState[2],currentCarState[3])
+            self.current_initial_velocity_x = currentCarState[2]
+            self.current_initial_velocity_y = currentCarState[3]
 
-            self.computeProbabilitiesOfCollisionAllTrajectories(currentRaycastLocations)
+            probability_vector, indices_list = self.computeProbabilitiesOfCollisionAllTrajectories(currentRaycastIntersectionLocations)
 
+            euclideans_vector = self.terminalEuclideanCostForTrajectories()
 
-            sorted_ranks_with_indices = self.rankTrajectories()
-            #method
-            #inputs: trajectories, global goal
-            #outputs: sorted list of indexes by desirability global goal
+            
 
+            #print np.shape(probability_vector), "is prob vector shape"
+            #print np.shape(inverse_euclideans_vector), "is inverse euclid vector"
 
-            #method
-            #input: trajectory
-            #output: is collision free or not
-            for traj in sorted_ranks_with_indices:
-                if self.CheckIfCollisionFreeTrajectoryIndex(traj[0]):
-                    traj_to_use_index = traj[0]
-                    break
-                traj_to_use_index = traj[0]
+            # probability_vector = np.ones(len(probability_vector)) - probability_vector
+            # for index, value in enumerate(euclideans_vector):
+            #     euclideans_vector[index] = 1.0/value
+            # print probability_vector, "is my prob vector of no collision"
+            # expected_reward = np.multiply(probability_vector, euclideans_vector)
+            # max_action_index_in_vector = np.argmax(expected_reward)
+            # x_index_to_use = indices_list[max_action_index_in_vector][0]
+            # y_index_to_use = indices_list[max_action_index_in_vector][1]
 
-            x_index_to_use = traj_to_use_index[0]
-            y_index_to_use = traj_to_use_index[1]
+            k_collision_cost = 10
+            k_terminal_cost = 1
+            sum_vector = probability_vector*k_collision_cost + euclideans_vector/np.max(euclideans_vector)*k_terminal_cost
+            min_action_index_in_vector = np.argmin(sum_vector)
+            x_index_to_use = indices_list[min_action_index_in_vector][0]
+            y_index_to_use = indices_list[min_action_index_in_vector][1]
+
 
             self.actionIndicesOverTime[idx,:] = [x_index_to_use, y_index_to_use] 
 
@@ -287,7 +340,6 @@ class Simulator(object):
             y_accel = self.ActionSet.a_y[y_index_to_use]
 
             controlInput = [x_accel, y_accel]
-
 
             self.controlInputData[idx] = controlInput
 
@@ -526,6 +578,7 @@ class Simulator(object):
 
     def run(self, launchApp=True):
         self.sphere_toggle = False
+        self.sigma_sensor = 0.75
 
 
         self.running_sim = True
@@ -577,7 +630,7 @@ class Simulator(object):
             locator = self.locator
 
         if self.sphere_toggle:
-            sphere_radius=0.75
+            sphere_radius=self.sigma_sensor
         else:
             sphere_radius=0.0
 
