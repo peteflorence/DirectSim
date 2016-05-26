@@ -65,7 +65,7 @@ class Simulator(object):
         self.options['World'] = dict()
         self.options['World']['obstaclesInnerFraction'] = 0.98
         self.options['World']['randomSeed'] = 40
-        self.options['World']['percentObsDensity'] = 7.0
+        self.options['World']['percentObsDensity'] = 25.0
         self.options['World']['nonRandomWorld'] = True
         self.options['World']['circleRadius'] = 0.6
         self.circleRadius = self.options['World']['circleRadius']
@@ -235,7 +235,7 @@ class Simulator(object):
         return float(1.0 - probability_no_collision)
 
     def computeProbabilityOfCollisionOneStepOneObstacle(self, x_index, y_index, time_step_index, time_step_value, obstacle_center):
-        volume = 5.0
+        volume = 4.18
         Sigma_sensor = np.zeros((3,3))
         np.fill_diagonal(Sigma_sensor, self.sigma_sensor)
 
@@ -350,7 +350,7 @@ class Simulator(object):
 
             euclidean_progress_vector = np.ones(len(euclideans_vector))*current_distance - euclideans_vector
             #print "euclidean progress vector", euclidean_progress_vector
-            reward_vector = euclidean_progress_vector# - 0.1*jerk_vector
+            reward_vector = euclidean_progress_vector - 0.1*jerk_vector/np.max(jerk_vector)
             #print "reward_vector", reward_vector
             
             expected_reward = np.multiply(probability_vector, reward_vector)
@@ -603,7 +603,7 @@ class Simulator(object):
 
     def run(self, launchApp=True):
         self.sphere_toggle = False
-        self.sigma_sensor = 0.75
+        self.sigma_sensor = 0.5
 
 
         self.running_sim = True

@@ -16,5 +16,5 @@ sim.worldScale             = 1
 
 
 sim.initialize()
-sim.defaultControllerTime  = 5
+sim.defaultControllerTime  = 10
 sim.run()
