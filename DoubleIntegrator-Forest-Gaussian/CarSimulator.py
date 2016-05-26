@@ -157,7 +157,7 @@ class Simulator(object):
 
         for i in xrange(self.ActionSet.num_x_bins):
             for j in xrange(self.ActionSet.num_y_bins):
-                distance = (final_x_positions[i] - global_goal_x)**2 + (final_y_positions[j] - global_goal_y)**2
+                distance = np.sqrt((final_x_positions[i] - global_goal_x)**2 + (final_y_positions[j] - global_goal_y)**2)
                 euclideans_vector.append(distance)
 
 
@@ -331,29 +331,34 @@ class Simulator(object):
 
             jerk_vector = self.computeJerkVector(controlInput)
 
+            # k_collision_cost = 10
+            # k_terminal_cost = 1
+            # k_jerk = 0.1
+            # sum_vector = probability_vector*k_collision_cost + euclideans_vector/np.max(euclideans_vector)*k_terminal_cost + k_jerk*jerk_vector/np.max(jerk_vector)
+            # min_action_index_in_vector = np.argmin(sum_vector)
+            # x_index_to_use = indices_list[min_action_index_in_vector][0]
+            # y_index_to_use = indices_list[min_action_index_in_vector][1]
+
             
 
-            #print np.shape(probability_vector), "is prob vector shape"
-            #print np.shape(inverse_euclideans_vector), "is inverse euclid vector"
+            # convert to probability no collision
+            probability_vector = np.ones(len(probability_vector)) - probability_vector
+            
+            # convert distances to amount of progress
+            current_distance = np.sqrt((currentCarState[0] - self.globalGoal.global_goal_x)**2 + (currentCarState[1] - self.globalGoal.global_goal_y)**2)
+            #print "euclideans vector", euclideans_vector
 
-            # probability_vector = np.ones(len(probability_vector)) - probability_vector
-            # for index, value in enumerate(euclideans_vector):
-            #     euclideans_vector[index] = 1.0/value
-            # print probability_vector, "is my prob vector of no collision"
-            # expected_reward = np.multiply(probability_vector, euclideans_vector)
-            # max_action_index_in_vector = np.argmax(expected_reward)
-            # x_index_to_use = indices_list[max_action_index_in_vector][0]
-            # y_index_to_use = indices_list[max_action_index_in_vector][1]
+            euclidean_progress_vector = np.ones(len(euclideans_vector))*current_distance - euclideans_vector
+            #print "euclidean progress vector", euclidean_progress_vector
+            reward_vector = euclidean_progress_vector# - 0.1*jerk_vector
+            #print "reward_vector", reward_vector
+            
+            expected_reward = np.multiply(probability_vector, reward_vector)
+            max_action_index_in_vector = np.argmax(expected_reward)
+            x_index_to_use = indices_list[max_action_index_in_vector][0]
+            y_index_to_use = indices_list[max_action_index_in_vector][1]
 
-            k_collision_cost = 10
-            k_terminal_cost = 1
-            k_jerk = 0.1
-            sum_vector = probability_vector*k_collision_cost + euclideans_vector/np.max(euclideans_vector)*k_terminal_cost + k_jerk*jerk_vector/np.max(jerk_vector)
-            min_action_index_in_vector = np.argmin(sum_vector)
-            x_index_to_use = indices_list[min_action_index_in_vector][0]
-            y_index_to_use = indices_list[min_action_index_in_vector][1]
-
-
+        
             self.actionIndicesOverTime[idx,:] = [x_index_to_use, y_index_to_use] 
 
             x_accel = self.ActionSet.a_x[x_index_to_use]
