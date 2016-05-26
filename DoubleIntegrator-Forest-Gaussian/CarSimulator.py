@@ -214,8 +214,8 @@ class Simulator(object):
         indices_vector = []
         for x_index in xrange(self.ActionSet.num_x_bins):
             for y_index in xrange(self.ActionSet.num_y_bins):
-                probability_no_collision = self.computeProbabilityOfCollisionOneTrajectory(x_index, y_index, currentRaycastIntersectionLocations)
-                probability_vector.append(probability_no_collision)
+                probability_of_collision = self.computeProbabilityOfCollisionOneTrajectory(x_index, y_index, currentRaycastIntersectionLocations)
+                probability_vector.append(probability_of_collision)
                 indices_vector.append([x_index, y_index])
 
         return np.array(probability_vector), indices_vector
