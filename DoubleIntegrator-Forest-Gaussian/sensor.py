@@ -77,6 +77,7 @@ class SensorObj(object):
     def raycastLocationsOnlyOfIntersections(self, frame):
         
         locations = []
+        in_collision = False
 
         origin = np.array(frame.transform.GetPosition())
 
@@ -88,7 +89,7 @@ class SensorObj(object):
                 a = 0
             else:
                 locations.append(intersection)
-
+                
         return locations
 
 
