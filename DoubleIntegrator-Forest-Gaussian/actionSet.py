@@ -31,9 +31,6 @@ class ActionSetObj(object):
         self.p_x_final = 1.0/2.0 * self.a_x * self.t_f**2 + np.ones(self.num_x_bins) * v_x_initial *self.t_f
         self.p_y_final = 1.0/2.0 * self.a_y * self.t_f**2 + np.ones(self.num_y_bins) * v_y_initial *self.t_f
 
-    def computeFinalSpeeds(self, v_x_initial, v_y_initial):
-
-
 
     def computeAllPositions(self, x_initial, y_initial, v_x_initial, v_y_initial):
         self.p_x_trajectories = 1.0/2.0 * np.outer(self.a_x, self.t_vector_squared) + np.outer(np.ones(self.num_x_bins) * v_x_initial, self.t_vector) + np.ones((self.numPointsToDraw,self.num_x_bins)).T*x_initial

@@ -209,7 +209,7 @@ class Simulator(object):
 
         return True
 
-    def computeProbabilitiesOfCollisionAllTrajectories(self, currentRaycastIntersectionLocations):
+    def computeProbabilitiesOfCollisionAllTrajectories(self, currentRaycastIntersectionLocations, speed_allowed_matrix):
         probability_vector = []
         indices_vector = []
         for x_index in xrange(self.ActionSet.num_x_bins):
@@ -284,16 +284,16 @@ class Simulator(object):
 
 
     def identifySpeedAllowedTrajectories(self):
-        speed_allowed_matrix = np.zeros((self.ActionSet.num_x_bins, self.ActionSet.num_y_bins))
+        speed_allowed_matrix = np.ones((self.ActionSet.num_x_bins, self.ActionSet.num_y_bins))
 
-        for x_index in xrange(self.ActionSet.num_x_bins):
-            for y_index in xrange(self.ActionSet.num_y_bins):
+        # for x_index in xrange(self.ActionSet.num_x_bins):
+        #     for y_index in xrange(self.ActionSet.num_y_bins):
 
-                this_x_accel = self.ActionSet.a_x[x_index]
-                this_y_accel = self.ActionSet.a_y[y_index]
+        #         this_x_accel = self.ActionSet.a_x[x_index]
+        #         this_y_accel = self.ActionSet.a_y[y_index]
 
-                if np.sqrt( (self.current_initial_velocity_x - this_x_accel)**2 + (self.current_initial_velocity_y - this_y_accel)**2) < self.speed_max:
-                    speed_allowed_matrix[x_index,y_index] = 1
+        #         if np.sqrt( (self.current_initial_velocity_x - this_x_accel)**2 + (self.current_initial_velocity_y - this_y_accel)**2) < self.speed_max:
+        #             speed_allowed_matrix[x_index,y_index] = 1
 
         return speed_allowed_matrix
 
@@ -332,7 +332,7 @@ class Simulator(object):
             self.setRobotFrameState(x,y,0.0)
             # self.setRobotState(currentCarState[0], currentCarState[1], currentCarState[2])
 
-            currentRaycastIntersectionLocations, in_collision = self.Sensor.raycastLocationsOnlyOfIntersections(self.frame)
+            currentRaycastIntersectionLocations = self.Sensor.raycastLocationsOnlyOfIntersections(self.frame)
 
             if self.checkInCollision(currentCarState[0], currentCarState[1], currentRaycastIntersectionLocations):
                 break
@@ -347,7 +347,7 @@ class Simulator(object):
             self.current_initial_velocity_x = currentCarState[2]
             self.current_initial_velocity_y = currentCarState[3]
 
-            speed_allowed_matrix = self.identifySpeedAllowedTrajectories():
+            speed_allowed_matrix = self.identifySpeedAllowedTrajectories()
 
             probability_vector, indices_list = self.computeProbabilitiesOfCollisionAllTrajectories(currentRaycastIntersectionLocations, speed_allowed_matrix)
 
@@ -628,6 +628,7 @@ class Simulator(object):
     def run(self, launchApp=True):
         self.sphere_toggle = False
         self.sigma_sensor = 0.5
+        self.speed_max = 10.0
 
 
         self.running_sim = True
@@ -730,14 +731,15 @@ class Simulator(object):
         self.robot.getChildFrame().copyFrame(t)
 
     # returns true if we are in collision
-    def checkInCollision(x, y, raycastLocations):
-
-        carState = [x,y,0]
-        for raycastLocation in raycastLocations:
-            if np.linalg.norm(carState - raycastLocation) < 0.3:
-                return True
-
+    def checkInCollision(self, x, y, raycastLocations):
         return False
+
+        # carState = [x,y,0]
+        # for raycastLocation in raycastLocations:
+        #     if np.linalg.norm(carState - raycastLocation) < 0.3:
+        #         return True
+
+        # return False
 
     def updateDrawActionSet(self, frame):
 
